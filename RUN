@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Test 1 - no database file given
+echo "./project1 < input.1 > out.1 2> err.1"
+./project1 < input.1 > out.1 2> err.1
+cmp stderr.1 err.1
+cmp stdout.1 out.1
+
+# Test 2 - database file can't be opened
+echo "./project1 db.2 < input.2 > out.2 2> err.2"
+./project1 db.2 < input.2 > out.2 2> err.2
+cmp stderr.2 err.2
+cmp stdout.2 out.2
+
+# Tests 3 through 9
+for n in 3 4 5 6 7 8 9
+do
+	echo "./project1 db.$n < input.$n > out.$n 2> err.$n"
+	./project1 db.$n < input.$n > out.$n 2> err.$n
+	cmp stderr.$n err.$n
+	cmp stdout.$n out.$n
+done
+
+# Test 10 is test #8 with a memory limit
+SPF_ALLOCATE_MAX=500
+export SPF_ALLOCATE_MAX
+echo "./project1 db.9 < input.9 > out.10 2> err.10"
+./project1 db.9 < input.9 > out.10 2> err.10
+cmp stderr.10 err.10
+cmp stdout.10 out.10
