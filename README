@@ -1,0 +1,49 @@
+The files db.* and input.* are test input files; stdout.* and stderr.*
+are the sample output from those tests.
+
+Note that the allocation library files are not present here; the
+header.mak file contains the necessary settings to allow the compiler
+and linker to find them.  Remember to use the <> form of #include to
+pull in the allocate.h file.
+
+If you are testing on the main network, you will need to use an
+architecture-specific version of the allocation library.  If you are
+using a SPARC-based system (one of the compute servers), you must edit
+the Makefile and replace the library option "-lallocate" with
+"-lallocate-s" before linking your project.
+
+If you are testing somewhere other than on a CS Solaris system, you will
+need to define your own versions of the allocation routines.  One simple
+way to do this is to use CPP macros such as these:
+
+	#define allocate(n)     malloc(n)
+	#define unallocate(p)   free(p)
+
+Alternatively, you can implement these as functions that invoke the
+malloc() and free() routines.  REMEMBER TO GET RID OF THESE DEFINITIONS
+WHEN YOU MOVE YOUR CODE BACK TO THE CS SYSTEMS, as they will prevent you
+from using the correct allocation routines.
+
+You can test your program with the RUN script found here, or with these
+commands (e.g., for test #4):
+
+   Bourne shell (/bin/sh):
+
+	project1 db.4 < input.4 > out.4 2> err.4
+	diff stdout.4 out.4
+	diff stderr.4 err.4
+
+   C shell (/bin/csh):
+
+	(project1 db.4 < input.4 > out.4) >& err.4
+	diff stdout.4 out.4
+	diff stderr.4 out.4
+
+Any differences between your output and the test output should be
+corrected before submitting your program.
+
+After each test is run, the file MAX_MEMORY_USED will indicate how much
+dynamic memory your program used for that test.
+
+NOTE:  These test files test only some of the program's functionality!
+Be sure to exhaustively test your solution.
