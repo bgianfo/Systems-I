@@ -24,3 +24,4 @@ default: clean project1.c
 clean:
 	rm -rf *.o
 	rm -rf project1
+	rm -rf allocate.h
