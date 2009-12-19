@@ -6,7 +6,7 @@
 
 char* trim(char* in)
 {
-  char input[INPUTLEN];
+  char* input = allocate(INPUTLEN*sizeof(char));
   input[0] = '\0';
 
   char* curr = strtok( in, WHITESPACE );
@@ -26,6 +26,6 @@ char* trim(char* in)
   char *output = allocate((len*sizeof(char))+1);
 
   strncpy(output,input,len+1);
-
+  deallocate(input);
   return output;
 }

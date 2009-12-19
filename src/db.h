@@ -11,6 +11,9 @@
 
 #define HEADER 99
 
+//#pragma pack(push)  /* push current alignment to stack */
+//#pragma pack(1)     /* set alignment to 1 byte boundary */
+
 typedef struct dbentry_s {
   unsigned char time_m;
   unsigned char time_s;
@@ -21,20 +24,22 @@ typedef struct dbentry_s {
   char *artist;
 } dbentry;
 
+//#pragma pack(pop)  /* Restore default alignment */
+
 dbentry* read_db( char *filename );
 
 void deallocate_db( dbentry* db );
 
-void print_action(dbentry* head, inaction_t);
+void print_action( dbentry* head, inaction_t, char* search);
 
-void printrule( int n, inaction_t act );
+void printrule( unsigned char n, inaction_t act );
 
 int title_comp( const void * elem1, const void * elem2 );
 
 int artist_comp( const void * elem1, const void * elem2 );
 
-int length( dbentry *list );
+int length( dbentry *l );
 
-void sort( dbentry** alist, dbentry** tlist );
+void sort( dbentry** al, dbentry** tl );
 
 #endif

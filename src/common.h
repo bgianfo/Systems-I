@@ -2,8 +2,6 @@
 #define _COMMON_H_
 
 #include <stdio.h>
-#include <errno.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -21,7 +19,6 @@
 #define allocate malloc
 
 #define deallocate free
-
 
 typedef enum {
    noop = 0,

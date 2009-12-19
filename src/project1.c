@@ -3,13 +3,15 @@
 #include "project1.h"
 #include "allocate.h"
 
-char search_term[INPUTLEN];
+char *search_term;
 
 inaction_t process( char command[] )
 {
   char arg[INPUTLEN];
   if ( cmps( command, "time" ) ) {
     return time;
+  } else if ( cmps( command, "quit") ) {
+    return quit;
   } else if ( cmps( command, "count") ) {
     return count;
   } else if ( cmps( command, "tracks") ) {
@@ -21,9 +23,11 @@ inaction_t process( char command[] )
   } else if ( cmps( command, "titles") ) {
     return titles;
   } else if ( sscanf( command, "artist %s", arg ) == 1 ) {
+    search_term = allocate(INPUTLEN*sizeof(char));
     strcpy( search_term, arg );
     return artist_search;
   } else if ( sscanf( command, "title %s", arg ) == 1 ) {
+    search_term = allocate(INPUTLEN*sizeof(char));
     strcpy( search_term, arg );
     return title_search;
   }
@@ -50,7 +54,7 @@ static void stats( dbentry* db, inaction_t action )
   while ( NULL != current )
   {
     total_s += (int) current->time_s;
-    total_m += (int)current->time_m;
+    total_m += (int) current->time_m;
     ++total_cds;
     total_tracks += (int) current->tracks;
 
@@ -94,7 +98,7 @@ int main( int argc, char** argv )
     fputs( DB_FILE_ERROR, stderr );
   } else {
     bool quitloop = false;
-    char input[INPUTLEN];
+    char *input = allocate(INPUTLEN*sizeof(char));
 
     dbentry* artist_head = NULL;
     dbentry* title_head = NULL;
@@ -102,9 +106,13 @@ int main( int argc, char** argv )
     char* dbfile = argv[1];
     artist_head = read_db(dbfile);
 
-    sort(&artist_head, &title_head);
+    if (artist_head == NULL) {
+      quitloop = true;
+    } else {
+      sort(&artist_head, &title_head);
+      printf("? ");
+    }
 
-    printf("? ");
     while( !feof(stdin) && !quitloop )
     {
       fgets( input, INPUTLEN, stdin);
@@ -113,10 +121,18 @@ int main( int argc, char** argv )
       switch( action )
       {
         case artists:
-          print_action( artist_head, action );
+          print_action( artist_head, action, NULL );
           break;
         case titles:
-          print_action( title_head, action );
+          print_action( title_head, action, NULL );
+          break;
+        case artist_search:
+          print_action( artist_head, action, search_term );
+          deallocate(search_term);
+          break;
+        case title_search:
+          print_action( title_head, action, search_term );
+          deallocate(search_term);
           break;
         case time:
         case count:
@@ -133,8 +149,10 @@ int main( int argc, char** argv )
           printf("%s","No command");
           break;
       }
-      printf("%s","\n? ");
+      if (!quitloop)
+        printf("%s","\n? ");
     }
+    deallocate(input);
     deallocate_db( artist_head );
   }
 }

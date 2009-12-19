@@ -13,7 +13,7 @@ dbentry* read_db(char *filename)
 
     bool first = true;
     dbentry* curr = NULL;
-    char buffer[DB_INPUT_LIMIT];
+    char *buffer = allocate(DB_INPUT_LIMIT*sizeof(char));
     while ( !feof(file_fd) )
     {
       char *ret;
@@ -60,6 +60,7 @@ dbentry* read_db(char *filename)
         head = curr;
       }
     }
+    deallocate(buffer);
   }
 
   fclose(file_fd);
@@ -101,46 +102,58 @@ int artist_comp( const void * elem1, const void * elem2 )
 }
 
 int length( dbentry *list ) {
-  dbentry* cur = list;
   int len = 0;
-  while ( NULL != cur )
+  while ( list )
   {
     ++len;
-    cur = cur->artist_next;
+    list = list->artist_next;
   }
   return len;
 }
 
-void print_action(dbentry* head, inaction_t action)
+void print_action(dbentry* head, inaction_t action, char* search)
 {
   dbentry* curr = head;
 
-  if (action == artists) {
+  if (action == artists || action == artist_search) {
     printf("%-24s  %s %35s %s\n", "Name of Artist", "CD Title", "Trk", "Time");
   } else {
     printf("%-39s  %s %14s %s\n", "CD Title", "Name of Artist", "Trk", "Time");
   }
 
+  bool artist_match;
+  bool title_match;
+
   printrule( HEADER, action );
   while ( NULL != curr )
   {
-    if ( action == artists ) {
+    if (search == NULL) {
+      artist_match = false;
+      title_match = false;
+    } else {
+      artist_match = NULL != strstr(curr->artist, search);
+      title_match  = NULL != strstr(curr->title, search);
+    }
+
+    if ( action == artists || ((action == artist_search) && artist_match) ) {
       printf("%-25s %-40s %3i %02i:%02i\n",
          curr->artist, curr->title, (int) curr->tracks, (int)curr->time_m, (int)curr->time_s);
       curr = curr->artist_next;
-    } else {
+    } else if ( action == titles || ((action == title_search) && title_match)) {
       printf("%-40s %-25s %3i %02i:%02i\n",
           curr->title, curr->artist, (int)curr->tracks, (int)curr->time_m, (int)curr->time_s);
       curr = curr->title_next;
     }
+
+    curr = (action == artists || action == artist_search) ? curr->artist_next : curr->title_next;
   }
 }
 
-void printrule(int n, inaction_t action)
+void printrule(unsigned char n, inaction_t action)
 {
   if (n == HEADER) {
 
-    if (action == status) {
+    if ( action == artists || action == artist_search ) {
       printrule(25,noop);
       printf(" ");
       printrule(40,noop);
@@ -176,7 +189,7 @@ void sort( dbentry** alist, dbentry** tlist )
   // sort items by artist name
   qsort(dbItems, len, sizeof(dbentry*), artist_comp);
 
-  dbentry* ahead = (dbentry*) dbItems[0];
+  *alist = dbItems[0];
 
   // reconstruct artist links from newly sorted values
   curr = (dbentry*) dbItems[0];
@@ -188,7 +201,8 @@ void sort( dbentry** alist, dbentry** tlist )
 
   // now sort
   qsort(dbItems, len, sizeof(dbentry*), title_comp);
-  dbentry* thead = dbItems[0];
+
+  *tlist = dbItems[0];
 
   // reconstruct title links from newly sorted values
   curr = (dbentry*) dbItems[0];
@@ -197,9 +211,6 @@ void sort( dbentry** alist, dbentry** tlist )
     curr = curr->title_next;
     curr->title_next = NULL;
   }
-
-  *alist = ahead;
-  *tlist = thead;
 
   deallocate(dbItems);
 

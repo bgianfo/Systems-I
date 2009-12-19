@@ -21,6 +21,9 @@ default: clean project1.c
 	$(CC) $(CFLAGS) str.o project1.o db.o -o project1
 	rm allocate.h
 
+test: default
+	cp project1 ../tests/.
+	cd ./../tests/ && ./RUN
 clean:
 	rm -rf *.o
 	rm -rf project1
