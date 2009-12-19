@@ -9,7 +9,7 @@ CFLAGS =	-ggdb -std=c99 -Wall -Wextra -pedantic
 # CLIBFLAGS =	$(LIBFLAGS)
 
 default: project1.c
-	$(CC) $(CFLAGS) project.c -o project1
+	$(CC) $(CFLAGS) project1.c -o project1
 
 clean:
 	rm -rf *.o
