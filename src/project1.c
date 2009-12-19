@@ -25,6 +25,62 @@ inaction_t process( char command[] )
   return noop;
 }
 
+/**
+ * Calculate various statistics about the current database.
+ *
+ * @param db - Pointer to the head node of the database.
+ * @param action - Which actions should 
+ */
+static void stats( dbentry* db, inaction_t action )
+{
+  dbentry* current = db; 
+  int total_h = 0;
+  int total_m = 0;
+  int total_s = 0;
+  int total_cds = 0;
+  int total_tracks = 0;
+
+  /* calculate statistics */
+  while ( NULL != current ) 
+  {
+    total_s += current->time_s;
+    total_m += current->time_m;
+    total_cds++;
+    total_tracks += current->tracks;
+
+    current = current->artist_next;
+  }
+
+  /* Tally up seconds which could be converted to minutes */
+  int tmp = total_s / 60;
+  total_s = total_s % 60;
+
+  /* Tally up minutes which could be converted to hours */
+  total_m += tmp;
+  tmp = total_m / 60;
+  total_m = total_m % 60;
+  total_h += tmp;
+
+  switch (action) 
+  {
+    case time:
+      printf( "total time %d:%d:%d", total_h, total_m, total_s );
+      break;
+    case count:
+      printf( "%d CDs", total_cds );
+      break;
+    case tracks:
+      printf( "%d tracks", total_tracks );
+      break;
+    case status:
+      printf( "%d CDs; %d tracks; total time %d:%d:%d", 
+          total_cds, total_tracks, total_h, total_m, total_s ); 
+      break;
+    default:
+      break;
+  }
+}
+
 int main( int argc, char** argv ) 
 {
 

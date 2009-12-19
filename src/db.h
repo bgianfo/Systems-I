@@ -19,9 +19,7 @@ typedef struct dbentry_s {
   char *artist;
 } dbentry;
 
-dbentry* read_db(char *filename);
-
-static void stats( dbentry* db, inaction_t action );
+dbentry* read_db( char *filename );
 
 int title_comp( const void * elem1, const void * elem2 );
 
@@ -30,6 +28,5 @@ int artist_comp( const void * elem1, const void * elem2 );
 int length( dbentry *list );
 
 static void sort( dbentry** alist, dbentry** tlist );
-
 
 #endif 
