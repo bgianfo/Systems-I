@@ -1,21 +1,35 @@
+#ifndef __DB_H__
+#define __DB_H__
 
-#define ARTIST_LEN 26
-#define TITLE_LEN  41
+#include "common.h"
 
-typedef struct entry {
+#define MAX_ARTIST_LEN 26
+#define MAX_TITLE_LEN  41
+#define MAX_TRACK_LIMIT 3
+#define MAX_TIME_LIMIT 3
+#define DB_INPUT_LIMIT 128
 
-     int time_m;
+typedef struct dbentry_s {
+  unsigned char time_m;
+  unsigned char time_s;
+  unsigned char tracks;
+  struct dbentry_s* title_next;
+  struct dbentry_s* artist_next;
+  char *title;
+  char *artist;
+} dbentry;
 
-     int time_s;
+dbentry* read_db(char *filename);
 
-     int tracks;
+static void stats( dbentry* db, inaction_t action );
 
-     struct db_entry* artist_next;
+int title_comp( const void * elem1, const void * elem2 );
 
-     struct db_entry* title_next;
+int artist_comp( const void * elem1, const void * elem2 );
 
-     char title[TITLE_LEN];
+int length( dbentry *list );
 
-     char artist[ARTist_LEN]
-};
+static void sort( dbentry** alist, dbentry** tlist );
 
+
+#endif 

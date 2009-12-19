@@ -1,60 +1,77 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdbool.h>
-
-#include <errno.h>
-#include <assert.h>
-
+#include "db.h"
 #include "common.h"
+#include "allocate.h"
 
-/* XXX: CHANGE ME */
-/*#include <allocate.h>*/
+char search_term[INPUTLEN];
 
 inaction_t process( char command[] ) 
 {
-  if ( strcmp( command, "time" ) ) {
+  char arg[INPUTLEN];
+  if ( cmps( command, "time" ) ) {
     return time;
-  } else if ( strcmp( command, "count" ) ) {
+  } else if ( cmps( command, "count") ) {
     return count;
-  } else if ( strcmp( command, "tracks" ) ) {
+  } else if ( cmps( command, "tracks") ) {
     return tracks;
-  } else if ( strcmp( command, "status" ) ) {
+  } else if ( cmps( command, "status") ) {
     return status;
+  } else if ( sscanf( command, "artist %s", arg ) == 1 ) {
+    strcpy( search_term, arg );
+    return artist_search;
+  } else if ( sscanf( command, "title %s", arg ) == 1 ) {
+    strcpy( search_term, arg );
+    return title_search;
   }
-
-  return none;
+  return noop;
 }
 
-
-int main( void ) 
+int main( int argc, char** argv ) 
 {
-  char input[INPUT_LEN];
 
-  printf("? ");
-  while( !feof(stdin) )
-  {
-    fgets(input, INPUT_LEN, stdin);
+  if ( argc < 2 ) {
+    fputs( DB_FILE_ERROR, stderr );
+  } else {
+    bool quitloop = false;
+    char input[INPUTLEN];
 
-    inaction_t action = process(input);
-    switch( action ) 
+    dbentry* artist_head = NULL;
+    dbentry* title_head = NULL;
+
+    char* dbfile = argv[1];
+    artist_head = read_db(dbfile);
+
+    sort(&artist_head, &title_head);
+
+    printf("? ");
+    while( !feof(stdin) && !quitloop )
     {
-      /* Fall through on these cases */
-      case time: 
-      case count:
-      case tracks:
-      case status:
-        stats( action );
-        break;
-      default:
-        printf("No command\n");
-        break;
-    }
-    printf("\n? ");
-  }
+      fgets( input, INPUTLEN, stdin);
 
-  if (feof(stdin)) {
-    printf("eof detected!"); 
+      inaction_t action = process(input);
+      switch( action ) 
+      {
+        case time: 
+          stats( artist_head, action );
+          break;
+        case count:
+          stats( artist_head, action );
+          break;
+        case tracks:
+          stats( artist_head, action );
+          break;
+        case status:
+          stats( artist_head, action );
+          break;
+        case quit:
+          quitloop = true;
+          break;
+        case noop:
+
+        default:
+          printf("No command");
+          break;
+      }
+      printf("\n? ");
+    }
   }
 }
