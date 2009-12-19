@@ -1,5 +1,5 @@
 CC = colorgcc
-CFLAGS = --std=c99 -Wall -Wextra -pedantic -fno-strict-aliasing  \
+CFLAGS = -ggdb3 --std=c99 -Wall -Wextra -pedantic -fno-strict-aliasing  \
 		-Wchar-subscripts -Wundef -Wshadow -Wcast-align -Wwrite-strings \
     -Wsign-compare -Wunused -Wno-unused-parameter -Winit-self \
     -Wpointer-arith -Wredundant-decls -Wformat-nonliteral \

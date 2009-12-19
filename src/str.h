@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "allocate.h"
-#define WHITESPACE " \t\n"
+#define WHITESPACE " \n"
 char* trim(char* in);
 
 #endif

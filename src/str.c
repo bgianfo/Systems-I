@@ -9,20 +9,23 @@ char* trim(char* in)
   char input[INPUTLEN];
   input[0] = '\0';
 
-  char* curr;
-  curr = strtok( in, WHITESPACE );
-  strcat(input, curr);
+  char* curr = strtok( in, WHITESPACE );
+
+  strncat(input, curr, strlen(curr));
+
   curr = strtok( NULL, WHITESPACE );
+
   while(NULL != curr)
   {
-    strcat(input," ");
-    strcat(input, curr);
+    strncat(input, " ",1);
+    strncat(input, curr, strlen(curr));
     curr = strtok( NULL, WHITESPACE );
   }
 
-  int length = strlen(input);
-  char *output = (char*) allocate(length*sizeof(char));
-  strcpy(output,input);
+  int len = strlen(input);
+  char *output = allocate((len*sizeof(char))+1);
+
+  strncpy(output,input,len+1);
 
   return output;
 }

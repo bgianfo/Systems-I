@@ -7,19 +7,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 #include "str.h"
 
 #define INPUTLEN 42
 
+#define DB_FILE_ERROR "Database file error\n"
+
 #define cmps(x,y) strncmp(x, y, strlen(y)) == 0
 
 #define allocate malloc
+
 #define deallocate free
 
-#define DB_FILE_ERROR "Database file error"
-   
+
 typedef enum {
    noop = 0,
    time,

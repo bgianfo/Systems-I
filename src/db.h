@@ -5,9 +5,11 @@
 
 #define MAX_ARTIST_LEN 26
 #define MAX_TITLE_LEN  41
-#define MAX_TRACK_LIMIT 3
-#define MAX_TIME_LIMIT 3
+#define MAX_TRACK_LIMIT 4
+#define MAX_TIME_LIMIT 7
 #define DB_INPUT_LIMIT 128
+
+#define HEADER 99
 
 typedef struct dbentry_s {
   unsigned char time_m;
@@ -21,12 +23,18 @@ typedef struct dbentry_s {
 
 dbentry* read_db( char *filename );
 
+void deallocate_db( dbentry* db );
+
+void print_action(dbentry* head, inaction_t);
+
+void printrule( int n, inaction_t act );
+
 int title_comp( const void * elem1, const void * elem2 );
 
 int artist_comp( const void * elem1, const void * elem2 );
 
 int length( dbentry *list );
 
-static void sort( dbentry** alist, dbentry** tlist );
+void sort( dbentry** alist, dbentry** tlist );
 
-#endif 
+#endif

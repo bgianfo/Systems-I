@@ -1,10 +1,11 @@
 #include "db.h"
 #include "common.h"
+#include "project1.h"
 #include "allocate.h"
 
 char search_term[INPUTLEN];
 
-inaction_t process( char command[] ) 
+inaction_t process( char command[] )
 {
   char arg[INPUTLEN];
   if ( cmps( command, "time" ) ) {
@@ -15,6 +16,10 @@ inaction_t process( char command[] )
     return tracks;
   } else if ( cmps( command, "status") ) {
     return status;
+  } else if ( cmps( command, "artists") ) {
+    return artists;
+  } else if ( cmps( command, "titles") ) {
+    return titles;
   } else if ( sscanf( command, "artist %s", arg ) == 1 ) {
     strcpy( search_term, arg );
     return artist_search;
@@ -29,11 +34,12 @@ inaction_t process( char command[] )
  * Calculate various statistics about the current database.
  *
  * @param db - Pointer to the head node of the database.
- * @param action - Which actions should 
+ * @param action - Which actions should should be
+ * completed after collecting stats.
  */
 static void stats( dbentry* db, inaction_t action )
 {
-  dbentry* current = db; 
+  dbentry* current = db;
   int total_h = 0;
   int total_m = 0;
   int total_s = 0;
@@ -41,12 +47,12 @@ static void stats( dbentry* db, inaction_t action )
   int total_tracks = 0;
 
   /* calculate statistics */
-  while ( NULL != current ) 
+  while ( NULL != current )
   {
-    total_s += current->time_s;
-    total_m += current->time_m;
-    total_cds++;
-    total_tracks += current->tracks;
+    total_s += (int) current->time_s;
+    total_m += (int)current->time_m;
+    ++total_cds;
+    total_tracks += (int) current->tracks;
 
     current = current->artist_next;
   }
@@ -61,7 +67,7 @@ static void stats( dbentry* db, inaction_t action )
   total_m = total_m % 60;
   total_h += tmp;
 
-  switch (action) 
+  switch (action)
   {
     case time:
       printf( "total time %d:%d:%d", total_h, total_m, total_s );
@@ -73,15 +79,15 @@ static void stats( dbentry* db, inaction_t action )
       printf( "%d tracks", total_tracks );
       break;
     case status:
-      printf( "%d CDs; %d tracks; total time %d:%d:%d", 
-          total_cds, total_tracks, total_h, total_m, total_s ); 
+      printf( "%d CDs; %d tracks; total time %d:%d:%d",
+          total_cds, total_tracks, total_h, total_m, total_s );
       break;
     default:
       break;
   }
 }
 
-int main( int argc, char** argv ) 
+int main( int argc, char** argv )
 {
 
   if ( argc < 2 ) {
@@ -104,17 +110,17 @@ int main( int argc, char** argv )
       fgets( input, INPUTLEN, stdin);
 
       inaction_t action = process(input);
-      switch( action ) 
+      switch( action )
       {
-        case time: 
-          stats( artist_head, action );
+        case artists:
+          print_action( artist_head, action );
           break;
+        case titles:
+          print_action( title_head, action );
+          break;
+        case time:
         case count:
-          stats( artist_head, action );
-          break;
         case tracks:
-          stats( artist_head, action );
-          break;
         case status:
           stats( artist_head, action );
           break;
@@ -124,10 +130,11 @@ int main( int argc, char** argv )
         case noop:
 
         default:
-          printf("No command");
+          printf("%s","No command");
           break;
       }
-      printf("\n? ");
+      printf("%s","\n? ");
     }
+    deallocate_db( artist_head );
   }
 }
