@@ -26,6 +26,6 @@ char* trim(char* in)
   char *output = allocate((len*sizeof(char))+1);
 
   strncpy(output,input,len+1);
-  deallocate(input);
+  unallocate(input);
   return output;
 }

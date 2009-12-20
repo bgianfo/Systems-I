@@ -13,12 +13,17 @@
 #define INPUTLEN 42
 
 #define DB_FILE_ERROR "Database file error\n"
+#define DB_TRUNK_ERROR "Database too large - truncating\n"
 
-#define cmps(x,y) strncmp(x, y, strlen(y)) == 0
+#define cmps(x,y) strncmp(x, y, strlen(x)) == 0
 
-#define allocate malloc
+#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
 
-#define deallocate free
+#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
+
+//#define allocate malloc
+
+//#define deallocate free
 
 typedef enum {
    noop = 0,

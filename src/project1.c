@@ -5,7 +5,7 @@
 
 char *search_term;
 
-inaction_t process( char command[] )
+inaction_t process( char* command )
 {
   char arg[INPUTLEN];
   if ( cmps( command, "time" ) ) {
@@ -83,7 +83,7 @@ static void stats( dbentry* db, inaction_t action )
       printf( "%d tracks", total_tracks );
       break;
     case status:
-      printf( "%d CDs; %d tracks; total time %d:%d:%d",
+      printf( "\n%d CDs; %d tracks; total time %d:%02d:%02d\n",
           total_cds, total_tracks, total_h, total_m, total_s );
       break;
     default:
@@ -107,17 +107,19 @@ int main( int argc, char** argv )
     artist_head = read_db(dbfile);
 
     if (artist_head == NULL) {
-      quitloop = true;
+      unallocate(input);
+      return EXIT_FAILURE;
     } else {
       sort(&artist_head, &title_head);
-      printf("? ");
     }
 
     while( !feof(stdin) && !quitloop )
     {
+      printf("\n? ");
       fgets( input, INPUTLEN, stdin);
+      char* command = trim(input);
 
-      inaction_t action = process(input);
+      inaction_t action = process(command);
       switch( action )
       {
         case artists:
@@ -128,11 +130,11 @@ int main( int argc, char** argv )
           break;
         case artist_search:
           print_action( artist_head, action, search_term );
-          deallocate(search_term);
+          unallocate(search_term);
           break;
         case title_search:
           print_action( title_head, action, search_term );
-          deallocate(search_term);
+          unallocate(search_term);
           break;
         case time:
         case count:
@@ -146,13 +148,13 @@ int main( int argc, char** argv )
         case noop:
 
         default:
-          printf("%s","No command");
+          fprintf( stderr, "Unknown command \'%s\'", command );
           break;
       }
-      if (!quitloop)
-        printf("%s","\n? ");
+      unallocate(command);
     }
-    deallocate(input);
+    unallocate(input);
     deallocate_db( artist_head );
+    printf("\n");
   }
 }

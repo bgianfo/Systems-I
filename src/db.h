@@ -9,19 +9,21 @@
 #define MAX_TIME_LIMIT 7
 #define DB_INPUT_LIMIT 128
 
+#define DB_SIZE_LIMIT 600
+
 #define HEADER 99
 
 //#pragma pack(push)  /* push current alignment to stack */
 //#pragma pack(1)     /* set alignment to 1 byte boundary */
 
 typedef struct dbentry_s {
-  unsigned char time_m;
-  unsigned char time_s;
-  unsigned char tracks;
   struct dbentry_s* title_next;
   struct dbentry_s* artist_next;
   char *title;
   char *artist;
+  unsigned char time_m;
+  unsigned char time_s;
+  unsigned char tracks;
 } dbentry;
 
 //#pragma pack(pop)  /* Restore default alignment */
@@ -33,6 +35,8 @@ void deallocate_db( dbentry* db );
 void print_action( dbentry* head, inaction_t, char* search);
 
 void printrule( unsigned char n, inaction_t act );
+
+bool searchdb(dbentry* db, char* art, char* title ); 
 
 int title_comp( const void * elem1, const void * elem2 );
 

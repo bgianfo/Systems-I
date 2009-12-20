@@ -10,12 +10,17 @@ dbentry* read_db(char *filename)
     fputs(DB_FILE_ERROR,stderr);
     return NULL;
   } else {
-
+    int count = 0;
     bool first = true;
     dbentry* curr = NULL;
     char *buffer = allocate(DB_INPUT_LIMIT*sizeof(char));
     while ( !feof(file_fd) )
     {
+      
+      if (count == DB_SIZE_LIMIT ) {
+	fputs(DB_TRUNK_ERROR,stderr);
+        break;
+      }
       char *ret;
       ret = fgets(buffer, MAX_ARTIST_LEN, file_fd);
       if ( ret == NULL )
@@ -40,6 +45,12 @@ dbentry* read_db(char *filename)
       int time_s = 0;
       sscanf(buffer,"%d:%d", &time_m, &time_s);
 
+      if ( searchdb(head, artist, title) ) {
+	fprintf(stderr,"Duplicate entry: '%s' '%s'\n",artist, title);
+	unallocate(artist);
+	unallocate(title);
+        continue;
+      }
       curr = allocate(sizeof(dbentry));
 
       curr->artist = artist;
@@ -59,8 +70,9 @@ dbentry* read_db(char *filename)
         curr->artist_next = head;
         head = curr;
       }
+      count++;
     }
-    deallocate(buffer);
+    unallocate(buffer);
   }
 
   fclose(file_fd);
@@ -79,26 +91,51 @@ void deallocate_db( dbentry* db )
   {
     next = curr->artist_next;
 
-    deallocate(curr->artist);
-    deallocate(curr->title);
-    deallocate(curr);
+    unallocate(curr->artist);
+    unallocate(curr->title);
+    unallocate(curr);
 
     curr = next;
   }
+}
+
+bool searchdb(dbentry* db, char* art, char* tit ) 
+{
+  while( NULL != db )
+  {
+    bool art_match = (strncmp( db->artist, art, max( strlen(art), strlen(db->artist) )) == 0);
+    bool tit_match = (strncmp( db->title,  tit, max( strlen(tit), strlen(db->title)  )) == 0);
+
+    if (art_match && tit_match) {
+      return true;
+    }
+    db = db->artist_next;
+  }
+  return false;
 }
 
 int title_comp( const void * elem1, const void * elem2 )
 {
   dbentry* const *dbelem1 = elem1;
   dbentry* const *dbelem2 = elem2;
-  return strcmp((*dbelem1)->title, (*dbelem2)->title);
+
+  int retval = strcmp((*dbelem1)->title, (*dbelem2)->title);
+  /* If titles are equal, order by artist */
+  if (retval == 0)
+    return strcmp((*dbelem1)->artist, (*dbelem2)->artist);
+  return retval;
+
 }
 
 int artist_comp( const void * elem1, const void * elem2 )
 {
   dbentry* const *dbelem1 =  elem1;
   dbentry* const *dbelem2 =  elem2;
-  return strcmp((*dbelem1)->artist, (*dbelem2)->artist);
+  int retval = strcmp((*dbelem1)->artist, (*dbelem2)->artist);
+  /* If artists are equal, order by title */
+  if (retval == 0)
+    return strcmp((*dbelem1)->title, (*dbelem2)->title);
+  return retval;
 }
 
 int length( dbentry *list ) {
@@ -115,6 +152,7 @@ void print_action(dbentry* head, inaction_t action, char* search)
 {
   dbentry* curr = head;
 
+  printf("\n");
   if (action == artists || action == artist_search) {
     printf("%-24s  %s %35s %s\n", "Name of Artist", "CD Title", "Trk", "Time");
   } else {
@@ -138,11 +176,9 @@ void print_action(dbentry* head, inaction_t action, char* search)
     if ( action == artists || ((action == artist_search) && artist_match) ) {
       printf("%-25s %-40s %3i %02i:%02i\n",
          curr->artist, curr->title, (int) curr->tracks, (int)curr->time_m, (int)curr->time_s);
-      curr = curr->artist_next;
     } else if ( action == titles || ((action == title_search) && title_match)) {
       printf("%-40s %-25s %3i %02i:%02i\n",
           curr->title, curr->artist, (int)curr->tracks, (int)curr->time_m, (int)curr->time_s);
-      curr = curr->title_next;
     }
 
     curr = (action == artists || action == artist_search) ? curr->artist_next : curr->title_next;
@@ -212,7 +248,7 @@ void sort( dbentry** alist, dbentry** tlist )
     curr->title_next = NULL;
   }
 
-  deallocate(dbItems);
+  unallocate(dbItems);
 
   return;
 }
