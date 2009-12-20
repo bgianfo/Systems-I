@@ -1,4 +1,5 @@
 #include "db.h"
+#include "str.h"
 #include "common.h"
 #include "project1.h"
 #include "allocate.h"
@@ -22,14 +23,22 @@ inaction_t process( char* command )
     return artists;
   } else if ( cmps( command, "titles") ) {
     return titles;
-  } else if ( sscanf( command, "artist %s", arg ) == 1 ) {
-    search_term = allocate(INPUTLEN*sizeof(char));
-    strcpy( search_term, arg );
-    return artist_search;
-  } else if ( sscanf( command, "title %s", arg ) == 1 ) {
-    search_term = allocate(INPUTLEN*sizeof(char));
-    strcpy( search_term, arg );
-    return title_search;
+  } 
+  
+  if ( sscanf( command, "%s %*s", arg ) == 1 ) {
+    if ( cmps(arg, "artist" ) ) {
+      if ( sscanf( command, "%*s %s", arg ) == 1 ) {
+        search_term = allocate(INPUTLEN*sizeof(char));
+        strcpy( search_term, arg );
+        return artist_search;
+      }
+    } else if ( cmps(arg, "title") ) {
+      if ( sscanf( command, "%*s %s", arg ) == 1 ) {
+        search_term = allocate(INPUTLEN*sizeof(char));
+        strcpy( search_term, arg );
+        return title_search;
+      }
+    }
   }
   return noop;
 }
@@ -148,7 +157,8 @@ int main( int argc, char** argv )
         case noop:
 
         default:
-          fprintf( stderr, "Unknown command \'%s\'", command );
+	  printf("\n");
+          fprintf( stderr, "Unknown command \'%s\'\n", command );
           break;
       }
       unallocate(command);

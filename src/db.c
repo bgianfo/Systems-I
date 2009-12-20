@@ -22,23 +22,23 @@ dbentry* read_db(char *filename)
         break;
       }
       char *ret;
-      ret = fgets(buffer, MAX_ARTIST_LEN, file_fd);
+      ret = fgets(buffer, DB_INPUT_LIMIT, file_fd);
       if ( ret == NULL )
         break;
-      char *artist = trim(buffer);
+      char *artist = trim_limit(buffer,artists);
 
-      ret = fgets(buffer, MAX_TITLE_LEN, file_fd);
+      ret = fgets(buffer, DB_INPUT_LIMIT, file_fd);
       if ( ret == NULL )
         break;
-      char *title = trim(buffer);
+      char *title = trim_limit(buffer, titles);
 
-      ret = fgets(buffer, MAX_TRACK_LIMIT, file_fd);
+      ret = fgets(buffer, DB_INPUT_LIMIT, file_fd);
       if ( ret == NULL )
         break;
 
       char ntracks = (char) atoi(buffer);
 
-      ret = fgets(buffer, MAX_TIME_LIMIT, file_fd);
+      ret = fgets(buffer, DB_INPUT_LIMIT , file_fd);
       if ( ret == NULL )
         break;
       int time_m = 0;

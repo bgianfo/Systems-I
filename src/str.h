@@ -2,8 +2,11 @@
 #define __STR_H__
 
 #include "common.h"
-#include "allocate.h"
+
 #define WHITESPACE " \n"
+
 char* trim(char* in);
+
+char* trim_limit(char* in, inaction_t action);
 
 #endif
