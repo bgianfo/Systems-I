@@ -6,6 +6,16 @@
 
 char *search_term;
 
+/**
+ * Process the suplied command argument and attempt to resolve it to one of 
+ * the actions in the "inaction_t" enum.
+ *
+ * @param command - The input command to try to process.
+ * @return the inacion_t item or the no operation (noop) indicator.
+ *
+ * @note - possible side effect of setting the search_term pointer on the 
+ * title and artist command .
+ */
 inaction_t process( char* command )
 {
   char arg[INPUTLEN];
@@ -25,14 +35,14 @@ inaction_t process( char* command )
     return titles;
   } 
   
-  if ( sscanf( command, "%s %*s", arg ) == 1 ) {
+  if (sscanf( command, "%s %*s", arg ) == 1) {
     if ( cmps(arg, "artist" ) ) {
       if ( sscanf( command, "%*s %s", arg ) == 1 ) {
         search_term = allocate(INPUTLEN*sizeof(char));
         strcpy( search_term, arg );
         return artist_search;
       }
-    } else if ( cmps(arg, "title") ) {
+    } else if ( cmps( arg, "title" ) ) {
       if ( sscanf( command, "%*s %s", arg ) == 1 ) {
         search_term = allocate(INPUTLEN*sizeof(char));
         strcpy( search_term, arg );
@@ -50,7 +60,7 @@ inaction_t process( char* command )
  * @param action - Which actions should should be
  * completed after collecting stats.
  */
-static void stats( dbentry* db, inaction_t action )
+void stats( dbentry* db, inaction_t action )
 {
   dbentry* current = db;
   int total_h = 0;
@@ -100,35 +110,57 @@ static void stats( dbentry* db, inaction_t action )
   }
 }
 
+inaction_t getinput( char* buffer ) 
+{
+  printf("\n? ");
+  fgets( buffer, INPUTLEN, stdin);
+  char* command = trim(buffer);
+  inaction_t action = process(command);
+  if (action == noop) {
+    printf("\n");
+    fprintf( stderr, "Unknown command \'%s\'\n", command );
+  }
+  unallocate(command);
+  return action;
+}
+
+/**
+ * Main logic loop 
+ *
+ * @param argc - number of arguments to the program
+ * @param argv - array of arugments to program
+ */
 int main( int argc, char** argv )
 {
+  bool quitloop = false;
+  dbentry* artist_head = NULL;
+  dbentry* title_head = NULL;
+
+  printf("Size of dbentry* is %ld\n", sizeof(struct dbentry_s*));
+  printf("Size of char*    is %ld\n", sizeof(char*));
+  printf("Size of uns char is %ld\n", sizeof(unsigned char));
+  printf("Size of stucture is %ld\n", sizeof(dbentry));
 
   if ( argc < 2 ) {
+    /** No db file was given, err and quit */
     fputs( DB_FILE_ERROR, stderr );
+    return EXIT_FAILURE;
   } else {
-    bool quitloop = false;
-    char *input = allocate(INPUTLEN*sizeof(char));
 
-    dbentry* artist_head = NULL;
-    dbentry* title_head = NULL;
+   /** The second element will be our db file name/path */
+    artist_head = read_db(argv[DB_FILE]);
 
-    char* dbfile = argv[1];
-    artist_head = read_db(dbfile);
-
-    if (artist_head == NULL) {
-      unallocate(input);
+    if (artist_head == NULL) { /** DB read failed exit */
       return EXIT_FAILURE;
-    } else {
-      sort(&artist_head, &title_head);
     }
 
+    /* Sort by artist and title */
+    sort(&artist_head, &title_head);
+
+    char *buffer = allocate(INPUTLEN*sizeof(char));
     while( !feof(stdin) && !quitloop )
     {
-      printf("\n? ");
-      fgets( input, INPUTLEN, stdin);
-      char* command = trim(input);
-
-      inaction_t action = process(command);
+      inaction_t action = getinput( buffer );
       switch( action )
       {
         case artists:
@@ -139,11 +171,11 @@ int main( int argc, char** argv )
           break;
         case artist_search:
           print_action( artist_head, action, search_term );
-          unallocate(search_term);
+          unallocate( search_term );
           break;
         case title_search:
           print_action( title_head, action, search_term );
-          unallocate(search_term);
+          unallocate( search_term );
           break;
         case time:
         case count:
@@ -155,16 +187,13 @@ int main( int argc, char** argv )
           quitloop = true;
           break;
         case noop:
-
         default:
-	  printf("\n");
-          fprintf( stderr, "Unknown command \'%s\'\n", command );
           break;
       }
-      unallocate(command);
     }
-    unallocate(input);
+    unallocate( buffer );
     deallocate_db( artist_head );
     printf("\n");
   }
+  return EXIT_SUCCESS;
 }

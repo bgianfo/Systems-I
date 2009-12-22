@@ -13,6 +13,9 @@
 
 #define HEADER 99
 
+#define TRACKS 0 
+#define SEC 1 
+#define MIN 2 
 //#pragma pack(push)  /* push current alignment to stack */
 //#pragma pack(1)     /* set alignment to 1 byte boundary */
 
@@ -21,9 +24,9 @@ typedef struct dbentry_s {
   struct dbentry_s* artist_next;
   char *title;
   char *artist;
-  unsigned char time_m;
-  unsigned char time_s;
-  unsigned char tracks;
+  uint8_t time_m;
+  uint8_t time_s;
+  uint8_t tracks;
 } dbentry;
 
 //#pragma pack(pop)  /* Restore default alignment */

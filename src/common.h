@@ -11,6 +11,7 @@
 
 #define INPUTLEN 42
 
+#define DB_FILE 1
 #define DB_FILE_ERROR "Database file error\n"
 #define DB_TRUNK_ERROR "Database too large - truncating\n"
 
@@ -20,9 +21,9 @@
 
 #define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 
-//#define allocate malloc
+#define allocate malloc
 
-//#define deallocate free
+#define unallocate free
 
 typedef enum {
    noop = 0,

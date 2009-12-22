@@ -1,4 +1,5 @@
 #include "db.h"
+#include "str.h"
 #include "common.h"
 #include "allocate.h"
 
@@ -10,15 +11,15 @@ dbentry* read_db(char *filename)
     fputs(DB_FILE_ERROR,stderr);
     return NULL;
   } else {
-    int count = 0;
+    int count_n = 0;
     bool first = true;
     dbentry* curr = NULL;
     char *buffer = allocate(DB_INPUT_LIMIT*sizeof(char));
     while ( !feof(file_fd) )
     {
       
-      if (count == DB_SIZE_LIMIT ) {
-	fputs(DB_TRUNK_ERROR,stderr);
+      if (count_n == DB_SIZE_LIMIT ) {
+      	fputs(DB_TRUNK_ERROR,stderr);
         break;
       }
       char *ret;
@@ -46,13 +47,12 @@ dbentry* read_db(char *filename)
       sscanf(buffer,"%d:%d", &time_m, &time_s);
 
       if ( searchdb(head, artist, title) ) {
-	fprintf(stderr,"Duplicate entry: '%s' '%s'\n",artist, title);
-	unallocate(artist);
-	unallocate(title);
+        fprintf(stderr,"Duplicate entry: '%s' '%s'\n",artist, title);
+        unallocate(artist);
+        unallocate(title);
         continue;
       }
       curr = allocate(sizeof(dbentry));
-
       curr->artist = artist;
       curr->title = title;
       curr->tracks = ntracks;
@@ -70,7 +70,7 @@ dbentry* read_db(char *filename)
         curr->artist_next = head;
         head = curr;
       }
-      count++;
+      count_n++;
     }
     unallocate(buffer);
   }
@@ -78,8 +78,6 @@ dbentry* read_db(char *filename)
   fclose(file_fd);
   return head;
 }
-
-
 
 void deallocate_db( dbentry* db )
 {
