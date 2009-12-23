@@ -14,6 +14,7 @@
 #define DB_FILE 1
 #define DB_FILE_ERROR "Database file error\n"
 #define DB_TRUNK_ERROR "Database too large - truncating\n"
+#define ALLOC_ERROR "Out of memory - program exiting\n"
 
 #define cmps(x,y) strncmp(x, y, strlen(x)) == 0
 

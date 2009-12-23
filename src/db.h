@@ -31,6 +31,8 @@ typedef struct dbentry_s {
 
 //#pragma pack(pop)  /* Restore default alignment */
 
+bool checkalloc( void* pointer );
+
 dbentry* read_db( char *filename );
 
 void deallocate_db( dbentry* db );

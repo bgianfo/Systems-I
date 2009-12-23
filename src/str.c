@@ -31,6 +31,15 @@ char* trim(char* in)
   return output;
 }
 
+/**
+ * Trim the input and limit it to a certain number of characters
+ * given the action.
+ * 
+ * @param in - Input to operation on.
+ * @param action - action to limit for.
+ *
+ * @return pointer to newly allocated input
+ */
 char* trim_limit( char* in, inaction_t action )
 {
   char *stripped = trim(in);

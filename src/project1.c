@@ -136,10 +136,12 @@ int main( int argc, char** argv )
   dbentry* artist_head = NULL;
   dbentry* title_head = NULL;
 
+  /*
   printf("Size of dbentry* is %ld\n", sizeof(struct dbentry_s*));
   printf("Size of char*    is %ld\n", sizeof(char*));
   printf("Size of uns char is %ld\n", sizeof(unsigned char));
   printf("Size of stucture is %ld\n", sizeof(dbentry));
+  */
 
   if ( argc < 2 ) {
     /** No db file was given, err and quit */
