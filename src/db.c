@@ -180,7 +180,7 @@ int title_comp( const void * left, const void * right )
   int title_comparison = strcmp((*lelem)->title, (*relem)->title);
 
   /* If titles are equal, order by artist */
-  if ( 0 == title_comparion )
+  if ( 0 == title_comparison )
     return strcmp( (*lelem)->artist, (*relem)->artist );
 
   return title_comparison;
@@ -320,22 +320,24 @@ void sort( dbentry** alist, dbentry** tlist )
   }
 
   // Sort db items by artist name
-  qsort( dbItems, len, sizeof( dbentry* ), artist_comp );
+  qsort( dbItems, dblen, sizeof( dbentry* ), artist_comp );
 
   // reconstruct artist links in newly sorted values
   *alist = dbItems[0];
-  for( curr = dbItems[0], int i = 1; i < len; i++ ) {
+  curr = dbItems[0]; 
+  for( int i = 1; i < dblen; i++ ) {
     curr->artist_next = dbItems[i];
     curr = curr->artist_next;
     curr->artist_next = NULL;
   }
 
   /* Now sort db items by title name */
-  qsort( dbItems, len, sizeof( dbentry* ), title_comp );
+  qsort( dbItems, dblen, sizeof( dbentry* ), title_comp );
 
   // reconstruct title links innewly sorted values
   *tlist = dbItems[0];
-  for( curr = dbItems[0], int i = 1; i < len; i++ ) {
+  curr = dbItems[0];
+  for( int i = 1; i < dblen; i++ ) {
     curr->title_next = dbItems[i];
     curr = curr->title_next;
     curr->title_next = NULL;
