@@ -113,14 +113,14 @@ void stats( dbentry* db, inaction_t action )
 inaction_t getinput( char* buffer ) 
 {
   printf("\n? ");
-  fgets( buffer, INPUTLEN, stdin);
+  fgets( buffer, INPUTLEN, stdin );
   char* command = trim(buffer);
   inaction_t action = process(command);
   if (action == noop) {
-    printf("\n");
+    printf( "\n" );
     fprintf( stderr, "Unknown command \'%s\'\n", command );
   }
-  unallocate(command);
+  unallocate( command );
   return action;
 }
 
@@ -158,6 +158,11 @@ int main( int argc, char** argv )
 
     /* Sort by artist and title */
     sort(&artist_head, &title_head);
+
+    /** DB read failed exit */
+    if ( artist_head == NULL && title_head == NULL )  { 
+      return EXIT_FAILURE;
+    }
 
     char *buffer = allocate(INPUTLEN*sizeof(char));
     while( !feof(stdin) && !quitloop )

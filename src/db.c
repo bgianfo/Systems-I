@@ -29,6 +29,7 @@ dbentry* read_db(char *filename)
 {
   FILE *file_fd = fopen( filename, "r" );
   dbentry* head = NULL;
+  char *buffer = NULL;
   if (file_fd == NULL) {
     fputs(DB_FILE_ERROR,stderr);
     return NULL;
@@ -36,15 +37,18 @@ dbentry* read_db(char *filename)
     int count_n = 0;
     bool first = true;
     dbentry* curr = NULL;
-    char *buffer = allocate(DB_INPUT_LIMIT*sizeof(char));
+    buffer = allocate(DB_INPUT_LIMIT*sizeof(char));
+
     if ( !checkalloc(buffer) ) {
       fclose(file_fd);
       return NULL;
     }
+
     while ( !feof(file_fd) )
     {
-      if (count_n == DB_SIZE_LIMIT ) {
-      	fputs(DB_TRUNK_ERROR,stderr);
+
+      if ( count_n == DB_SIZE_LIMIT ) {
+      	fputs( DB_TRUNK_ERROR, stderr );
         break;
       }
 
@@ -55,16 +59,26 @@ dbentry* read_db(char *filename)
       ret = fgets(buffer, DB_INPUT_LIMIT, file_fd);
       if ( ret == NULL )
         break;
+
       char *artist = trim_limit(buffer,artists);
+      if (!checkalloc( artist )) {
+	goto allocfail;
+      }
 
       ret = fgets(buffer, DB_INPUT_LIMIT, file_fd);
       if ( ret == NULL )
         break;
+
       char *title = trim_limit(buffer, titles);
+      if ( !checkalloc( title ) ) {
+        unallocate( artist );
+	goto allocfail;
+      }
 
       ret = fgets(buffer, DB_INPUT_LIMIT, file_fd);
       if ( ret == NULL )
         break;
+
       char ntracks = (char) atoi(buffer);
 
       ret = fgets(buffer, DB_INPUT_LIMIT , file_fd);
@@ -76,7 +90,7 @@ dbentry* read_db(char *filename)
       sscanf( buffer, "%d:%d", &time_m, &time_s );
 
       /* make sure this isn't a duplicate */
-      if ( searchdb(head, artist, title) ) {
+      if ( searchdb( head, artist, title ) ) {
         fprintf(stderr,"Duplicate entry: '%s' '%s'\n",artist, title);
         unallocate(artist);
         unallocate(title);
@@ -88,9 +102,7 @@ dbentry* read_db(char *filename)
       if ( !checkalloc( curr ) ) {
         unallocate( artist );
         unallocate( title );
-        deallocate_db( head );
-        head = NULL;
-        break;
+	goto allocfail;
       }
       curr->artist = artist;
       curr->title = title;
@@ -111,11 +123,19 @@ dbentry* read_db(char *filename)
       }
       count_n++;
     }
-
     unallocate(buffer);
   }
   fclose( file_fd );
   return head;
+
+allocfail:
+
+  unallocate(buffer);
+  deallocate_db( head );
+  head = NULL;
+  fclose(file_fd);
+  return NULL;
+
 }
 
 /**
@@ -313,6 +333,11 @@ void sort( dbentry** alist, dbentry** tlist )
 
   int dblen = length( curr );
   dbentry** dbItems = allocate(dblen * sizeof(dbentry*));
+
+  if ( !checkalloc( dbItems ) ) {
+    *alist = NULL;
+    *tlist = NULL;
+  }
 
   // Copy linked list node pointers to db items
   for( int i = 0; NULL != curr; i++, curr = curr->artist_next ) {
