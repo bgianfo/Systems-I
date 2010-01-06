@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "common.h"
 #include "str.h"
-#include "allocate.h"
+#include <allocate.h>
 
 char* trim(char* in)
 {

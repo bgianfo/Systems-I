@@ -1,7 +1,7 @@
 #include "db.h"
 #include "str.h"
 #include "common.h"
-#include "allocate.h"
+#include <allocate.h>
 
 /**
  * Check any pointer allocation.

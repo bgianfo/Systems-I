@@ -2,7 +2,7 @@
 #include "str.h"
 #include "common.h"
 #include "project1.h"
-#include "allocate.h"
+#include <allocate.h>
 
 char *search_term;
 
