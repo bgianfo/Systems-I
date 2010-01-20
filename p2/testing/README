@@ -1,0 +1,16 @@
+These test drivers illustrate how you can test the individual functions
+for this project.  You can expand them with additional test cases, or
+use them as the basis for writing other test programs.
+
+To use, copy your *.s files into this directory, and run one of the
+following commands:
+
+	make			generates all test programs
+
+	make run		generates and runs all test programs
+
+	make test_insert	generates only insert() test
+
+	make test_mknode	generates only mknode() test
+
+	make test_print		generates only print() test

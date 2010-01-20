@@ -1,0 +1,33 @@
+The files db.* and input.* are test input files; stdout.* and stderr.*
+are the sample output from those tests.
+
+If you are testing somewhere other than on a CS Solaris system, you
+will need to define your own versions of the allocation routines.  I
+recommend implementing these as functions that invoke the malloc() and
+free() routines.  REMEMBER TO GET RID OF THESE FUNCTIONS WHEN YOU MOVE
+YOUR CODE BACK TO THE CS SYSTEMS, as they will prevent you from using
+the correct allocation routines.
+
+You can test your program with the RUN script found here, or with these
+commands (e.g., for test #4):
+
+   Bourne shell (/bin/sh):
+
+	project2 db.4 < input.4 > out.4 2> err.4
+	diff stdout.4 out.4
+	diff stderr.4 err.4
+
+   C shell (/bin/csh):
+
+	(project2 db.4 < input.4 > out.4) >& err.4
+	diff stdout.4 out.4
+	diff stderr.4 out.4
+
+Any differences between your output and the test output should be
+corrected before submitting your program.
+
+After each test is run, the file MAX_MEMORY_USED will indicate how much
+dynamic memory your program used for that test.
+
+NOTE:  These test files test only some of the program's functionality!
+Be sure to exhaustively test your solution.
