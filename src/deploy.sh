@@ -1,7 +1,7 @@
 #!/bin/bash
 HOST='dsl.cs.rit.edu'
 USER='bjg1955'
-PASSWD='bek1AYESHA2sissypu'
+PASSWD='..'
 ftp -n -v $HOST << EOT
 ascii
 user $USER $PASSWD
