@@ -1,0 +1,20 @@
+#!/bin/sh
+
+n=1
+while [ -f args.$n ]
+do
+	args="`cat args.$n`"
+
+	echo "=================================================="
+	echo "Test $n:  ./pipeline $args < input.default"
+	eval ./pipeline $args < input.default > ,out.$n 2> ,err.$n
+
+	cmp stderr.$n ,err.$n
+	cmp stdout.$n ,out.$n
+	if [ -f ,result.$n ]
+	then
+		cmp result.$n ,result.$n
+	fi
+
+	n=`expr $n + 1`
+done

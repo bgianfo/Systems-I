@@ -1,0 +1,31 @@
+The files you have retrieved have the following contents:
+
+	RUN		script for testing your program
+
+	header.mak	for use with 'makemake'
+
+	args.*		command line arguments to 'pipeline'
+
+	ifile.*		specific stdin used to test redirection
+	input.default	default stdin fed to 'pipeline'
+
+	result.*	specific stdout used to test redirection
+	stderr.*	expected stderr from 'pipeline'
+	stdout.*	expected stdout from 'pipeline'
+
+The RUN script automatically runs all of the supplied tests against your
+pipeline program, and compares your program's output with the expected
+output.  You should see a series of lines beginning "Test n:" (where 'n'
+is a test number), with the tests separated by lines of equal signs; if
+you see any other output, that indicates a difference between your
+program's results and the correct results, which you should look at more
+closely.  Your program's results are put into files whose names indicate
+the test number; e.g., for test 5, the names would be ',err.5', ',out.5',
+',result.5'.  Note that not all tests have ,result files - only tests
+which explicitly redirect stdout will have these.
+
+Any differences between your output and the expected output should be
+corrected before submitting your program.
+
+NOTE:  These test files test only some of your program's functionality!
+Be sure to exhaustively test your solution.
