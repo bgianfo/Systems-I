@@ -29,6 +29,14 @@ int main(size_t argc, char** argv ) {
   int fd[2];
   pipe(fd);
 
+  /*
+  ** TODO/Hints:
+  **  - Loop to continually process arguments.
+  **  - Might need to call dup()/dup2() to allows access to parent descriptors in child.
+  **  - Uses  exec/execlp and friends to actuall call process.
+  **  - File handeling shit.
+  */
+
   pid_t  childpid;
   if( (childpid = fork()) == FORK_ERR ) {
     perror("fork");
