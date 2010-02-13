@@ -3,9 +3,9 @@
 #
 ALLOCDIR =	/usr/local/pub/wrc/courses/sp1/allocate
 CC =		gcc
-AS =		gas
-CFLAGS =	-ggdb -std=c99 -I$(ALLOCDIR)
-LIBFLAGS =	-L$(ALLOCDIR) -lallocate
+AS =		as
+CFLAGS =	-ggdb -std=c99 -I$(ALLOCDIR) -I.
+LIBFLAGS =	-L$(ALLOCDIR) 
 CLIBFLAGS =	$(LIBFLAGS)
 
 .s.o:

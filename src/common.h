@@ -22,6 +22,10 @@
 
 #define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 
+#define allocate malloc
+
+#define unallocate free
+
 typedef enum {
    noop = 0,
    time,

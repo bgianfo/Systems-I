@@ -43,7 +43,8 @@ mknode:
 		enter  $0, $0              # Save stack frame
 
 		pushl  $NODESZ             # Push argument to allocate
-		call   allocate
+		#call   allocate
+    call malloc
 		popl   %ebx
    
 	  cmp    $NULL, %eax         # If allocate failed ( == 0 ) exit
