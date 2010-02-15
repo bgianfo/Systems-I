@@ -16,17 +16,30 @@
 
 #include "pipeline.h"
 
-int main( size_t argc, char** argv ) {
+bool rw_to( char* filename, int fd ) {
 
-  char string[] = "Hello, world!\n";
-  char readbuffer[80];
+  char buffer[200];
+  FILE* file = fdopen( filename, "r" );
+
+  if ( NULL == file ) {
+    perror("file");
+    return false;
+  }
+
+  while ( !feof(file) ) {
+   int nread = fgets( buffer, 200, file );
+   write( fd, buffer, nread );
+  }
+  return true;
+}
+
+int main( size_t argc, char** argv ) {
 
   printf(" %s\n", argv[1] );
   /* Just exit if no arguments */
   if ( argc < 2 ) {
     exit( EXIT_SUCCESS );
   }
-
 
   bool redirect_in = false;
   bool redirect_out = false;
@@ -48,9 +61,6 @@ int main( size_t argc, char** argv ) {
     }
   }
 
-  int fd[2];
-  pipe(fd);
-
   /*
   ** TODO/Hints:
   **  - Loop to continually process arguments.
@@ -59,29 +69,53 @@ int main( size_t argc, char** argv ) {
   **  - File handeling shit.
   */
 
-  pid_t  childpid;
-  if( (childpid = fork()) == FORK_ERR ) {
-    perror("fork");
-    _exit( EXIT_FAILURE );
-  }
+  int cur = 1;
+  while( true ) {
 
-  if ( childpid == 0 ) {
-    /* Child process closes up input side of pipe */
+    int fd[2];
+    if ( pipe(fd) == -1 ) {
+      // Errorr!
+    }
+
+    pid_t childpid = fork();
+
+    if ( childpid == FORK_ERR ) {
+      perror("fork");
+      _exit( EXIT_FAILURE );
+    }
+
+
+    if ( childpid == 0 ) {
+
+      if ( /* we are getting in put on left */ ) {
+        dup2( fds[IN], STDIN_FILENO );
+        close( fds[IN] );
+      } else if ( /* we are sending output on right */  ) {
+        dup2( fds[OUT], STDOUT_FILENO );
+        close( fds[OUT] );
+      }
+
+      if ( redirect_in ) { 
+        rw_to( ifile, stdout );
+        redirect_in = false;
+      }
+
+      char *const args[] = { sysargv[cur] , NULL };
+      execcv( args[0], args );
+      _exit( EXIT_FAILURE );
+
+    } else {
+
+    }
+
     close( fd[IN] );
-
-    /* Send "string" through the output side of pipe */
-    write( fd[OUT], string, (strlen(string)+1) );
-    exit( EXIT_SUCCESS );
-  } else {
-    /* Parent process closes up output side of pipe */
     close( fd[OUT] );
 
-    /* Read in a string from the pipe */
-    int nbytes = read( fd[IN], readbuffer, sizeof(readbuffer) );
-    printf( "Received string: %s", readbuffer );
+    wait( NULL );
+    wait( NULL );
+
   }
+
 
   return EXIT_SUCCESS;
 }
-
-
