@@ -13,6 +13,7 @@
 #define OUT 1
 
 #define FORK_ERR -1
+
 /*
 ** Illegal null command
 ** No command given on one side of a pipe symbol
