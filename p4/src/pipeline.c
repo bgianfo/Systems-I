@@ -19,7 +19,7 @@
 bool rw_to( char* filename, int fd ) {
 
   char buffer[200];
-  FILE* file = fdopen( filename, "r" );
+  FILE* file = fopen( filename, "r" );
 
   if ( NULL == file ) {
     perror("file");
@@ -27,13 +27,13 @@ bool rw_to( char* filename, int fd ) {
   }
 
   while ( !feof(file) ) {
-   int nread = fgets( buffer, 200, file );
-   write( fd, buffer, nread );
+   fgets( buffer, 200, file );
+   write( fd, buffer, 200 );
   }
   return true;
 }
 
-int main( size_t argc, char** argv ) {
+int main( int argc, char* argv[] ) {
 
   printf(" %s\n", argv[1] );
   /* Just exit if no arguments */
@@ -48,12 +48,12 @@ int main( size_t argc, char** argv ) {
   char* ifile;
 
   for ( int i = 1; i < argc; i++ ) {
-    if ( '<' == argv[i] ) {
+    if ( "<" == argv[i] ) {
       redirect_in = true;
       if ( (i+1) < argc ) {
         ifile = argv[i+1];
       }
-    } else if ( '>' == argv[i] ) {
+    } else if ( ">" == argv[i] ) {
       redirect_out = true;
       if ( (i+1) < argc ) {
         ofile = argv[i+1];
