@@ -1,7 +1,12 @@
 /*
-** Brian Gianforcaro (bjg1955@cs.rit.edu)
+ * File:  pipeline.h
+ *
+** Authors:
+**    Brian Gianforcaro (bjg1955@cs.rit.edu)
+**    Nicholas Williams (nxw9676@cs.rit.edu)
 **
-** Nicholas Williams (nxw9676@cs.rit.edu)
+** Description:
+**    Description
 **
 */
 
@@ -9,10 +14,19 @@
 #define _PIPELINE_H_
 
 /* Process input and output indices to the fd array */
-#define IN 0
-#define OUT 1
+#define IN        0
+#define OUT       1
 
 #define FORK_ERR -1
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <string.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 /*
 ** Illegal null command
