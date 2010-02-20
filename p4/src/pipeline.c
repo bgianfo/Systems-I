@@ -12,26 +12,6 @@
 
 #include "pipeline.h"
 
-/*
-bool rw_to( char* filename, int fd ) {
-
-  char buffer[ 200 ];
-  FILE* file = fopen( filename, "r" );
-
-  if ( file == NULL ) {
-    perror( "file" );
-    return ( false );
-  }
-
-  while ( !feof( file ) ) {
-   fgets( buffer, 200, file );
-   write( fd, buffer, 200 );
-  }
-
-  return ( true );
-}
-*/
-
 int main( int argc, char* argv[] ) {
 
   /* Just exit if no arguments */
@@ -48,17 +28,25 @@ int main( int argc, char* argv[] ) {
     exit( EXIT_FAILURE );
   }
 
+  /* Check for missing command name */
+  if ( !strcmp( argv[ 1 ], ">" ) || !strcmp( argv[ 1 ], "<" ) ) {
+    fprintf( stderr, "Missing command name\n" );
+    exit( EXIT_FAILURE );
+  }
+
+  /* redirect input/output */
   bool redirect_in = false;
   bool redirect_out = false;
 
-  char* ofile;
+  /* filename for input/output files */
   char* ifile;
+  char* ofile;
 
   /*
   ** Loop through arguments and check for illegal
   ** null commands before/after pipe, illegal input
   ** redirects and illegal output redirects
-  **/
+  */
   bool block_in = false;
   for ( int i = 2; i < argc - 1; i++ ) {
 
@@ -100,28 +88,22 @@ int main( int argc, char* argv[] ) {
   
   }
 
-  /*
-  ** Check for valid input redirect
-  **/
-  FILE *in;
+  /* Check for valid input redirect */
   if ( redirect_in ) {
-    in = fopen( ifile, "r" );
-    if ( in == NULL ) {
+    if ( freopen( ifile, "r", stdin ) == NULL ) {
       perror( ifile );
       exit( EXIT_FAILURE );
     }
   }
 
-  /*
-  ** Check for valid output redirect
-  */
-  FILE *out;
+  /* Check for valid output redirect */
   if ( redirect_out ) {
-    out = fopen( ofile, "w" );
-    if ( out == NULL ) {
+    FILE *out;
+    if ( ( out = fopen( ofile, "w" ) ) == NULL ) {
       perror( ofile );
       exit( EXIT_FAILURE );
     }
+    fclose( out );
   }
 
   /*
@@ -132,52 +114,68 @@ int main( int argc, char* argv[] ) {
   **  - File handeling shit.
   */
 
-//  int cur = 1;
-//  while ( true ) {
+  pid_t childpid;
+  int fd_in [ 2 ];
+  int fd_out[ 2 ];
 
-//    int fd[ 2 ];
-//    if ( pipe( fd ) == -1 ) {
-      // Errorr!
-//    }
+  while ( true ) {
 
-//    pid_t childpid = fork();
+    if ( pipe( fd_in ) == ERROR || pipe( fd_out) == ERROR ) {
+      perror( "failed pipe" );
+      _exit( EXIT_FAILURE );
+    }
 
-//    if ( childpid == FORK_ERR ) {
-//      perror( "fork" );
-//      _exit( EXIT_FAILURE );
-//    }
+    if ( ( childpid = fork() ) == ERROR ) {
+      perror( "failed fork" );
+      _exit( EXIT_FAILURE );
+    }
 
 
-//    if ( childpid == 0 ) {
+    if ( childpid == 0 ) {
+        
+      if ( close( fd_in[ 0 ] ) == ERROR || close( fd_out[ 1 ] ) == ERROR ) {
+        perror( "failed close" );
+        _exit( EXIT_FAILURE );
+      }
 
-//      if ( /* we are getting in put on left */ ) {
-//        dup2( fds[ IN ], STDIN_FILENO );
-//        close( fds[ IN ] );
-//      } else if ( /* we are sending output on right */  ) {
-//        dup2( fds[ OUT ], STDOUT_FILENO );
-//        close( fds[ OUT ] );
-//      }
+      if ( dup2( fd_out[ 0 ], STDIN_FILENO ) == ERROR ) {
+        perror( "failed redirect in" );
+        _exit( EXIT_FAILURE );
+      } else if ( close( fd_out[ 0 ] ) == ERROR ) {
+        perror( "failed close" );
+        _exit( EXIT_FAILURE );
+      }
 
-//      if ( redirect_in ) { 
-//        rw_to( ifile, stdout );
-//        redirect_in = false;
-//      }
+      if ( dup2( fd_in[ 1 ], STDOUT_FILENO ) == ERROR ) {
+        perror( "failed redirect out" );
+        _exit( EXIT_FAILURE );
+      } else if ( close( fd_in[ 1 ] ) == ERROR ) {
+        perror( "failed close" );
+        _exit( EXIT_FAILURE );
+      }
 
-//      char *const args[] = { sysargv[ cur ] , NULL };
-//      execcv( args[ 0 ], args );
-//      _exit( EXIT_FAILURE );
+      if ( redirect_in ) { 
+        fclose( stdin );
+        redirect_in = false;
+      }
 
-//    } else {
+      //if ( execvp( args[ 0 ], args ) != 0 ) {
+      //  perror( "Error in execvp" );
+      //  _exit( EXIT_FAILURE );
+      //}
 
-//    }
+    } else {
 
-//    close( fd[ IN ] );
-//    close( fd[ OUT ] );
+      if ( close( fd_in[ 1 ] ) == ERROR || close( fd_out[ 0 ] ) == ERROR ) {
+        perror( "failed close" );
+        _exit( EXIT_FAILURE );
+      } else {
+        wait( NULL );
+      }
+    
+    }
 
-//    wait( NULL );
-//    wait( NULL );
-
-//  }
+  }
 
   return ( EXIT_SUCCESS );
 }
