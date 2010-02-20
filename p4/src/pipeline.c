@@ -22,13 +22,13 @@ int main( int argc, char* argv[] ) {
   ** Check if the first or last command are pipes;
   ** if so print out an error message and exit
   */
-  if ( !strcmp( argv[ 1 ], "|" ) || !strcmp( argv[ argc - 1 ], "|" ) ) {
+  if ( argv[ 1 ][ 0 ] == '|' || argv[ argc - 1 ][ 0 ] == '|' ) {
     fprintf( stderr, "Illegal null command\n" );
     exit( EXIT_FAILURE );
   }
 
   /* Check for missing command name */
-  if ( !strcmp( argv[ 1 ], ">" ) || !strcmp( argv[ 1 ], "<" ) ) {
+  if ( argv[ 1 ][ 0 ] == '>' || argv[ 1 ][ 0 ] == '<' ) {
     fprintf( stderr, "Missing command name\n" );
     exit( EXIT_FAILURE );
   }
@@ -49,9 +49,9 @@ int main( int argc, char* argv[] ) {
   bool block_in = false;
   for ( int i = 2; i < argc - 1; i++ ) {
 
-    if ( !strcmp( argv[ i ], "|" ) ) {
+    if ( argv[ i ][ 0 ] == '|' ) {
 
-      if ( !strcmp( argv[ i - 1 ], "|" ) || !strcmp( argv[ i + 1 ], "|" ) ) {
+      if ( argv[ i - 1 ][ 0 ] == '|' || argv[ i + 1 ][ 0 ] == '|' ) {
         fprintf( stderr, "Illegal null command\n" );
         exit( EXIT_FAILURE );
       }
@@ -63,7 +63,7 @@ int main( int argc, char* argv[] ) {
 
       block_in = true;
 
-    } else if ( !strcmp( argv[ i ], "<" ) ) {
+    } else if ( argv[ i ][ 0 ] == '<' ) {
 
       if ( block_in || redirect_in ) {
         fprintf( stderr, "%s: Illegal input redirect\n", argv[ i + 1 ] );
@@ -73,7 +73,7 @@ int main( int argc, char* argv[] ) {
       redirect_in = true;
       ifile = i + 1 < argc ? argv[ i + 1 ] : "";
 
-    } else if ( !strcmp( argv[ i ], ">" ) ) {
+    } else if ( argv[ i ][ 0 ] == '>' ) {
 
       if ( redirect_out ) {
         fprintf( stderr, "%s: Illegal output redirect\n", argv[ i + 1 ] );
@@ -106,8 +106,8 @@ int main( int argc, char* argv[] ) {
   }
 
   for (int i = 0; i < argc; i++ ) {
-    if ( !strcmp( ">", argv[i] ) || !strcmp( "<", argv[i] ) ) {
-      argv[i] = (char*) NULL;
+    if ( argv[ i ][ 0 ] == '>' || argv[ i ][ 0 ] == '<' ) {
+      argv[ i ] = ( char* ) NULL;
       // TODO: Might need argc -= (i+1) ?
       argc -= i;
       break;
@@ -130,14 +130,14 @@ int main( int argc, char* argv[] ) {
 
   while ( true ) {
 
-    if ( pipe( fd_in ) == ERROR || pipe( fd_out) == ERROR ) {
+    if ( pipe( fd_in ) == ERROR || pipe( fd_out ) == ERROR ) {
       perror( "failed pipe" );
       _exit( EXIT_FAILURE );
     }
 
     bool argv_mod = false;
     for (int i = 0; i < argc; i++ ) {
-      if (  argv[i] == NULL ) {
+      if (  argv[ i ] == NULL ) {
         argv += i;
         // TODO: Might need argc -= (i+1) ?
         argc -= i;
@@ -152,8 +152,8 @@ int main( int argc, char* argv[] ) {
     }
 
     for (int i = 0; i < argc; i++ ) {
-      if ( !strcmp( "|", argv[i] ) ) {
-        argv[i] = (char*) NULL;
+      if ( argv[ i ][ 0 ] == '|' ) {
+        argv[ i ] = ( char* ) NULL;
         break;
       }
     }
