@@ -199,8 +199,7 @@ int main( int argc, char* argv[] ) {
         redirect_in = false;
       }
 
-      char* args[] = { "ls", "-l", NULL };
-      if ( execvp( args[ 0 ], args ) != 0 ) {
+      if ( execvp( argv[ 0 ], argv ) != 0 ) {
         perror( "Error in execvp" );
         _exit( EXIT_FAILURE );
       }
