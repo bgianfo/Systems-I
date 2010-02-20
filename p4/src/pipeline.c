@@ -151,11 +151,16 @@ int main( int argc, char* argv[] ) {
       argc--;
     }
 
-    for (int i = 0; i < argc; i++ ) {
-      if ( argv[ i ][ 0 ] == '|' ) {
-        argv[ i ] = ( char* ) NULL;
-        break;
+    if ( argc > 2 ) {
+      for (int i = 0; i < argc; i++ ) {
+        if ( argv[ i ][ 0 ] == '|' ) {
+          argv[ i ] = ( char* ) NULL;
+          break;
+        }
       }
+    } else {
+      argv++;
+      argc--;
     }
 
     if ( ( childpid = fork() ) == ERROR ) {
@@ -199,7 +204,8 @@ int main( int argc, char* argv[] ) {
         redirect_in = false;
       }
 
-      if ( execvp( argv[ 0 ], argv ) != 0 ) {
+      fprintf(stderr, "command: %s\n",argv[0] );
+      if ( execvp( argv[ 0 ], (argv+1) ) != 0 ) {
         perror( "Error in execvp" );
         _exit( EXIT_FAILURE );
       }
