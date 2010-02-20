@@ -134,19 +134,26 @@ int main( int argc, char* argv[] ) {
     if ( childpid == 0 ) {
         
       if ( close( fd_in[ 0 ] ) == ERROR || close( fd_out[ 1 ] ) == ERROR ) {
+        close( fd_in [ 1 ] );
+        close( fd_out[ 0 ] );
+        close( fd_out[ 1 ] );
         perror( "failed close" );
         _exit( EXIT_FAILURE );
       }
 
       if ( dup2( fd_out[ 0 ], STDIN_FILENO ) == ERROR ) {
+        close( fd_in [ 1 ] );
+        close( fd_out[ 0 ] );
         perror( "failed redirect in" );
         _exit( EXIT_FAILURE );
       } else if ( close( fd_out[ 0 ] ) == ERROR ) {
+        close( fd_in [ 1 ] );
         perror( "failed close" );
         _exit( EXIT_FAILURE );
       }
 
       if ( dup2( fd_in[ 1 ], STDOUT_FILENO ) == ERROR ) {
+        close( fd_in[ 1 ] );
         perror( "failed redirect out" );
         _exit( EXIT_FAILURE );
       } else if ( close( fd_in[ 1 ] ) == ERROR ) {
@@ -167,8 +174,9 @@ int main( int argc, char* argv[] ) {
     } else {
 
       if ( close( fd_in[ 1 ] ) == ERROR || close( fd_out[ 0 ] ) == ERROR ) {
+        close( fd_out[ 0 ] );
         perror( "failed close" );
-        _exit( EXIT_FAILURE );
+        exit( EXIT_FAILURE );
       } else {
         wait( NULL );
       }
