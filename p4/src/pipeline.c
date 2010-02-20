@@ -135,34 +135,6 @@ int main( int argc, char* argv[] ) {
       _exit( EXIT_FAILURE );
     }
 
-    bool argv_mod = false;
-    for (int i = 0; i < argc; i++ ) {
-      if (  argv[ i ] == NULL ) {
-        argv += i;
-        // TODO: Might need argc -= (i+1) ?
-        argc -= i;
-        argv_mod = true;
-        break;
-      }
-    }
-
-    if ( !argv_mod ) {
-      argv++;
-      argc--;
-    }
-
-    if ( argc > 2 ) {
-      for (int i = 0; i < argc; i++ ) {
-        if ( argv[ i ][ 0 ] == '|' ) {
-          argv[ i ] = ( char* ) NULL;
-          break;
-        }
-      }
-    } else {
-      argv++;
-      argc--;
-    }
-
     if ( ( childpid = fork() ) == ERROR ) {
       perror( "failed fork" );
       _exit( EXIT_FAILURE );
@@ -204,8 +176,30 @@ int main( int argc, char* argv[] ) {
         redirect_in = false;
       }
 
+      for ( int i = 0; i < argc; i++ ) {
+        if ( argv[ i ] == NULL ) {
+          argv += i;
+          argc -= i;
+          break;
+        }
+      }
+
+      for ( int i = 0; i < argc; i++ ) {
+        if ( argv[ i ][ 0 ] == '|' ) {
+          argv[ i ] = ( char * ) NULL;
+          argc -= i;
+          break;
+        }
+      }
+
+      argc -= 2;
+
+      if ( argc <= 0 ) {
+        return ( EXIT_SUCCESS );
+      }
+
       fprintf(stderr, "command: %s\n",argv[0] );
-      if ( execvp( argv[ 0 ], (argv+1) ) != 0 ) {
+      if ( execvp( ++( argv )[ 0 ], ++( argv ) ) != 0 ) {
         perror( "Error in execvp" );
         _exit( EXIT_FAILURE );
       }
