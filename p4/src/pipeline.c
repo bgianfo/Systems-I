@@ -1,6 +1,5 @@
-/*
-** File:  pipeline.c
-** 
+/* ** File:  pipeline.c
+**
 ** Authors:
 **    Brian Gianforcaro (bjg1955@cs.rit.edu)
 **    Nicholas Williams (nxw6572@cs.rit.edu)
@@ -17,12 +16,12 @@ int main( int argc, char* argv[] ) {
   /* Just exit if no arguments */
   if ( argc < 2 ) {
     exit( EXIT_SUCCESS );
-  } 
+  }
 
   /*
   ** Check if the first or last command are pipes;
   ** if so print out an error message and exit
-  */ 
+  */
   if ( !strcmp( argv[ 1 ], "|" ) || !strcmp( argv[ argc - 1 ], "|" ) ) {
     fprintf( stderr, "Illegal null command\n" );
     exit( EXIT_FAILURE );
@@ -51,26 +50,26 @@ int main( int argc, char* argv[] ) {
   for ( int i = 2; i < argc - 1; i++ ) {
 
     if ( !strcmp( argv[ i ], "|" ) ) {
-      
+
       if ( !strcmp( argv[ i - 1 ], "|" ) || !strcmp( argv[ i + 1 ], "|" ) ) {
         fprintf( stderr, "Illegal null command\n" );
         exit( EXIT_FAILURE );
       }
-      
+
       if ( redirect_out ) {
         fprintf( stderr, "%s: Illegal output redirect\n", argv[ i - 1 ] );
         exit( EXIT_FAILURE );
       }
-    
+
       block_in = true;
-    
+
     } else if ( !strcmp( argv[ i ], "<" ) ) {
-      
+
       if ( block_in || redirect_in ) {
         fprintf( stderr, "%s: Illegal input redirect\n", argv[ i + 1 ] );
         exit( EXIT_FAILURE );
-      } 
-      
+      }
+
       redirect_in = true;
       ifile = i + 1 < argc ? argv[ i + 1 ] : "";
 
@@ -80,12 +79,12 @@ int main( int argc, char* argv[] ) {
         fprintf( stderr, "%s: Illegal output redirect\n", argv[ i + 1 ] );
         exit( EXIT_FAILURE );
       }
-      
+
       redirect_out = true;
       ofile = i + 1 < argc ? argv[ i + 1 ] : "";
 
     }
-  
+
   }
 
   /* Check for valid input redirect */
@@ -106,6 +105,17 @@ int main( int argc, char* argv[] ) {
     fclose( out );
   }
 
+  for (int i = 0; i < argc; i++ ) {
+    if ( !strcmp( ">", argv[i] ) || !strcmp( "<", argv[i] ) ) {
+      argv[i] = (char*) NULL;
+      // TODO: Might need argc -= (i+1) ?
+      argc -= i;
+      break;
+    }
+  }
+  argv++;
+  argc--;
+
   /*
   ** TODO/Hints:
   **  - Loop to continually process arguments.
@@ -125,6 +135,29 @@ int main( int argc, char* argv[] ) {
       _exit( EXIT_FAILURE );
     }
 
+    bool argv_mod = false;
+    for (int i = 0; i < argc; i++ ) {
+      if (  argv[i] == NULL ) {
+        argv += i;
+        // TODO: Might need argc -= (i+1) ?
+        argc -= i;
+        argv_mod = true;
+        break;
+      }
+    }
+
+    if ( !argv_mod ) {
+      argv++;
+      argc--;
+    }
+
+    for (int i = 0; i < argc; i++ ) {
+      if ( !strcmp( "|", argv[i] ) ) {
+        argv[i] = (char*) NULL;
+        break;
+      }
+    }
+
     if ( ( childpid = fork() ) == ERROR ) {
       perror( "failed fork" );
       _exit( EXIT_FAILURE );
@@ -132,7 +165,7 @@ int main( int argc, char* argv[] ) {
 
 
     if ( childpid == 0 ) {
-        
+
       if ( close( fd_in[ 0 ] ) == ERROR || close( fd_out[ 1 ] ) == ERROR ) {
         close( fd_in [ 1 ] );
         close( fd_out[ 0 ] );
@@ -161,15 +194,16 @@ int main( int argc, char* argv[] ) {
         _exit( EXIT_FAILURE );
       }
 
-      if ( redirect_in ) { 
+      if ( redirect_in ) {
         fclose( stdin );
         redirect_in = false;
       }
 
-      //if ( execvp( args[ 0 ], args ) != 0 ) {
-      //  perror( "Error in execvp" );
-      //  _exit( EXIT_FAILURE );
-      //}
+      char* args[] = { "ls", "-l", NULL };
+      if ( execvp( args[ 0 ], args ) != 0 ) {
+        perror( "Error in execvp" );
+        _exit( EXIT_FAILURE );
+      }
 
     } else {
 
@@ -180,9 +214,7 @@ int main( int argc, char* argv[] ) {
       } else {
         wait( NULL );
       }
-    
     }
-
   }
 
   return ( EXIT_SUCCESS );
