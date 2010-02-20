@@ -11,6 +11,17 @@
 
 #include "pipeline.h"
 
+void debug( char str[], char** argv ) {
+    fprintf(stderr, "%s { ", str );
+    int iter = 0;
+    while ( argv[iter] ) {
+      fprintf(stderr, "\"%s\", ",argv[iter]);
+      iter++;
+    }
+    fprintf(stderr, "NULL }\n");
+    return;
+}
+
 int main( int argc, char* argv[] ) {
 
   /* Just exit if no arguments */
@@ -125,7 +136,8 @@ int main( int argc, char* argv[] ) {
   }
 
   while ( true ) {
-    
+
+    debug( "args before: ", argv );
     for ( int i = 0; i <= argc; i++ ) {
       if ( argv[ i ] == NULL ) {
         argv += i;
@@ -133,13 +145,16 @@ int main( int argc, char* argv[] ) {
         break;
       }
     }
- 
+
     if ( argc <= 0 ) {
+      debug( "args after : ", argv );
       break;
     } else {
       argv++;
       argc--;
+      debug( "args after : ", argv );
     }
+
 
     if ( pipe( fd_in ) == ERROR || pipe( fd_out ) == ERROR ) {
       perror( "failed pipe" );
@@ -189,7 +204,7 @@ int main( int argc, char* argv[] ) {
         redirect_in = false;
       }
 
-      fprintf(stderr, "command: %s\n",argv[0] );
+      fprintf(stderr, "command: %s\n", argv[0] );
       if ( execvp( argv[ 0 ], argv ) != 0 ) {
         perror( "Error in execvp" );
         _exit( EXIT_FAILURE );
