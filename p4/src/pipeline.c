@@ -117,24 +117,28 @@ int main( int argc, char* argv[] ) {
   int fd_in [ 2 ];
   int fd_out[ 2 ];
 
+  argv[ 0 ] = ( char* ) NULL;
+  for ( int i = 1; i < argc; i++ ) {
+    if ( argv[ i ][ 0 ] == '|' ) {
+      argv[ i ] = ( char* ) NULL;
+    }
+  }
+
   while ( true ) {
     
-    for ( int i = 0; i < argc; i++ ) {
+    for ( int i = 0; i <= argc; i++ ) {
       if ( argv[ i ] == NULL ) {
         argv += i;
         argc -= i;
-      }
-      if ( argv[ i ][ 0 ] == '|' ) {
-        argv[ i ] = ( char * ) NULL;
         break;
       }
     }
-
-    argv++;
-    argc--;
-
+ 
     if ( argc <= 0 ) {
       break;
+    } else {
+      argv++;
+      argc--;
     }
 
     if ( pipe( fd_in ) == ERROR || pipe( fd_out ) == ERROR ) {
@@ -148,7 +152,7 @@ int main( int argc, char* argv[] ) {
     }
 
     if ( childpid == 0 ) {
-
+/*
       if ( close( fd_in[ 0 ] ) == ERROR || close( fd_out[ 1 ] ) == ERROR ) {
         close( fd_in [ 1 ] );
         close( fd_out[ 0 ] );
@@ -157,7 +161,7 @@ int main( int argc, char* argv[] ) {
         _exit( EXIT_FAILURE );
       }
 
-      if ( dup2( fd_out[ 0 ], STDIN_FILENO ) == ERROR ) {
+      if ( dup2( fd_out[ 0 ], fd_out[ 1 ] ) == ERROR ) {
         close( fd_in [ 1 ] );
         close( fd_out[ 0 ] );
         perror( "failed redirect in" );
@@ -176,6 +180,9 @@ int main( int argc, char* argv[] ) {
         perror( "failed close" );
         _exit( EXIT_FAILURE );
       }
+*/
+      close( fd_in[ 0 ] );
+      dup2( fd_out[ 1 ], STDOUT_FILENO );
 
       if ( redirect_in ) {
         fclose( stdin );
@@ -183,20 +190,23 @@ int main( int argc, char* argv[] ) {
       }
 
       fprintf(stderr, "command: %s\n",argv[0] );
-      if ( execvp( argv[ 0 ], argv  ) != 0 ) {
+      if ( execvp( argv[ 0 ], argv ) != 0 ) {
         perror( "Error in execvp" );
         _exit( EXIT_FAILURE );
       }
 
     } else {
-
+/*
       if ( close( fd_in[ 1 ] ) == ERROR || close( fd_out[ 0 ] ) == ERROR ) {
         close( fd_out[ 0 ] );
         perror( "failed close" );
         exit( EXIT_FAILURE );
       } else {
+*/
+      close( fd_in[ 1 ] );
+      dup2( fd_in[ 0 ], STDIN_FILENO );
         wait( NULL );
-      }
+      //}
     }
   }
 
