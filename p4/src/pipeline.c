@@ -22,6 +22,7 @@ void debug( char str[], char** argv ) {
     return;
 }
 
+
 int main( int argc, char* argv[] ) {
 
   /* Just exit if no arguments */
@@ -125,8 +126,8 @@ int main( int argc, char* argv[] ) {
   */
 
   pid_t childpid;
-  int fd_in [ 2 ];
-  int fd_out[ 2 ];
+  int fd_in [ 2 ] = { -1, -1 };
+  int fd_out[ 2 ] = { -1, -1 };
 
   argv[ 0 ] = ( char* ) NULL;
   for ( int i = 1; i < argc; i++ ) {
@@ -135,27 +136,32 @@ int main( int argc, char* argv[] ) {
     }
   }
 
+  argc--;
+  argv += argc;
+  char **args = argv;
   while ( true ) {
+    
+    if ( argc <= 0 ) {
+      //debug( "args after : ", argv );
+      break;
+    } //else {
+      //argv--;
+      //argc--;
+      //debug( "args after : ", argv );
+    //}
 
-    debug( "args before: ", argv );
-    for ( int i = 0; i <= argc; i++ ) {
-      if ( argv[ i ] == NULL ) {
-        argv += i;
-        argc -= i;
+    args = argv;
+    for ( ; argc >= 0; argc-- ) {
+      if ( argv[ 0 ] == NULL ) {
+        argv--;
+        argc--;
+        args = argv + 2;
         break;
+      } else {
+        argv--;
       }
     }
-
-    if ( argc <= 0 ) {
-      debug( "args after : ", argv );
-      break;
-    } else {
-      argv++;
-      argc--;
-      debug( "args after : ", argv );
-    }
-
-
+    
     if ( pipe( fd_in ) == ERROR || pipe( fd_out ) == ERROR ) {
       perror( "failed pipe" );
       _exit( EXIT_FAILURE );
@@ -165,7 +171,7 @@ int main( int argc, char* argv[] ) {
       perror( "failed fork" );
       _exit( EXIT_FAILURE );
     }
-
+    
     if ( childpid == 0 ) {
 /*
       if ( close( fd_in[ 0 ] ) == ERROR || close( fd_out[ 1 ] ) == ERROR ) {
@@ -196,16 +202,17 @@ int main( int argc, char* argv[] ) {
         _exit( EXIT_FAILURE );
       }
 */
+
       close( fd_in[ 0 ] );
-      dup2( fd_out[ 1 ], STDOUT_FILENO );
+      //dup2( fd_out[ 1 ], STDOUT_FILENO );
 
       if ( redirect_in ) {
         fclose( stdin );
         redirect_in = false;
       }
 
-      fprintf(stderr, "command: %s\n", argv[0] );
-      if ( execvp( argv[ 0 ], argv ) != 0 ) {
+      fprintf(stderr, "command: %s\n",args[0] );
+      if ( execvp( args[ 0 ], args ) != 0 ) {
         perror( "Error in execvp" );
         _exit( EXIT_FAILURE );
       }
@@ -219,8 +226,8 @@ int main( int argc, char* argv[] ) {
       } else {
 */
       close( fd_in[ 1 ] );
-      dup2( fd_in[ 0 ], STDIN_FILENO );
-        wait( NULL );
+      //dup2( fd_out[ 0 ], STDIN_FILENO );
+      wait( NULL );
       //}
     }
   }
