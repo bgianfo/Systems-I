@@ -105,17 +105,6 @@ int main( int argc, char* argv[] ) {
     fclose( out );
   }
 
-  for (int i = 0; i < argc; i++ ) {
-    if ( argv[ i ][ 0 ] == '>' || argv[ i ][ 0 ] == '<' ) {
-      argv[ i ] = ( char* ) NULL;
-      // TODO: Might need argc -= (i+1) ?
-      argc -= i;
-      break;
-    }
-  }
-  argv++;
-  argc--;
-
   /*
   ** TODO/Hints:
   **  - Loop to continually process arguments.
@@ -129,6 +118,24 @@ int main( int argc, char* argv[] ) {
   int fd_out[ 2 ];
 
   while ( true ) {
+    
+    for ( int i = 0; i < argc; i++ ) {
+      if ( argv[ i ] == NULL ) {
+        argv += i;
+        argc -= i;
+      }
+      if ( argv[ i ][ 0 ] == '|' ) {
+        argv[ i ] = ( char * ) NULL;
+        break;
+      }
+    }
+
+    argv++;
+    argc--;
+
+    if ( argc <= 0 ) {
+      break;
+    }
 
     if ( pipe( fd_in ) == ERROR || pipe( fd_out ) == ERROR ) {
       perror( "failed pipe" );
@@ -139,7 +146,6 @@ int main( int argc, char* argv[] ) {
       perror( "failed fork" );
       _exit( EXIT_FAILURE );
     }
-
 
     if ( childpid == 0 ) {
 
@@ -176,30 +182,8 @@ int main( int argc, char* argv[] ) {
         redirect_in = false;
       }
 
-      for ( int i = 0; i < argc; i++ ) {
-        if ( argv[ i ] == NULL ) {
-          argv += i;
-          argc -= i;
-          break;
-        }
-      }
-
-      for ( int i = 0; i < argc; i++ ) {
-        if ( argv[ i ][ 0 ] == '|' ) {
-          argv[ i ] = ( char * ) NULL;
-          argc -= i;
-          break;
-        }
-      }
-
-      argc -= 2;
-
-      if ( argc <= 0 ) {
-        return ( EXIT_SUCCESS );
-      }
-
       fprintf(stderr, "command: %s\n",argv[0] );
-      if ( execvp( ++( argv )[ 0 ], ++( argv ) ) != 0 ) {
+      if ( execvp( argv[ 0 ], argv  ) != 0 ) {
         perror( "Error in execvp" );
         _exit( EXIT_FAILURE );
       }
