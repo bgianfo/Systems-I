@@ -11,8 +11,21 @@
 
 #include "pipeline.h"
 
+/* redirect input/output */
+bool redirect_in = false;
+bool redirect_out = false;
+
+/* filename for input/output files */
+char* ifile;
+char* ofile;
+
+
+void do_child( char** argv, char** args, int argc, bool last_cmd );
+
 void debug( char str[], char** argv ) {
-    fprintf(stderr, "%s { ", str );
+
+    //fprintf( stderr, " %s argc: %d\n", str, *argc );
+    fprintf( stderr, "%s { ", str );
     int iter = 0;
     while ( argv[iter] ) {
       fprintf(stderr, "\"%s\", ",argv[iter]);
@@ -22,6 +35,25 @@ void debug( char str[], char** argv ) {
     return;
 }
 
+bool next_cmd( char*** argv, char*** args, int *argc ) {
+
+  if ( (*argc) <= 0 ) {
+    return false;
+  }
+  //debug("before: ", *args );
+  (*args) = (*argv);
+  for ( ; (*argc) >= 0; (*argc)-- ) {
+    if ( (*argv)[ 0 ] == NULL ) {
+      (*argv)--;
+      (*argc)--;
+      (*args) = (*argv) + 2;
+      break;
+    } else {
+      (*argv)--;
+    }
+  }
+  return true;
+}
 
 int main( int argc, char* argv[] ) {
 
@@ -44,15 +76,6 @@ int main( int argc, char* argv[] ) {
     fprintf( stderr, "Missing command name\n" );
     exit( EXIT_FAILURE );
   }
-
-  /* redirect input/output */
-  bool redirect_in = false;
-  bool redirect_out = false;
-
-  /* filename for input/output files */
-  char* ifile;
-  char* ofile;
-
   /*
   ** Loop through arguments and check for illegal
   ** null commands before/after pipe, illegal input
@@ -94,9 +117,7 @@ int main( int argc, char* argv[] ) {
 
       redirect_out = true;
       ofile = i + 1 < argc ? argv[ i + 1 ] : "";
-
     }
-
   }
 
   /* Check for valid input redirect */
@@ -125,10 +146,6 @@ int main( int argc, char* argv[] ) {
   **  - File handeling shit.
   */
 
-  pid_t childpid;
-  int fd_in [ 2 ] = { -1, -1 };
-  int fd_out[ 2 ] = { -1, -1 };
-
   argv[ 0 ] = ( char* ) NULL;
   for ( int i = 1; i < argc; i++ ) {
     if ( argv[ i ][ 0 ] == '|' ) {
@@ -138,99 +155,69 @@ int main( int argc, char* argv[] ) {
 
   argc--;
   argv += argc;
-  char **args = argv;
-  while ( true ) {
-    
-    if ( argc <= 0 ) {
-      //debug( "args after : ", argv );
-      break;
-    } //else {
-      //argv--;
-      //argc--;
-      //debug( "args after : ", argv );
-    //}
+  char** args = argv;
 
-    args = argv;
-    for ( ; argc >= 0; argc-- ) {
-      if ( argv[ 0 ] == NULL ) {
-        argv--;
-        argc--;
-        args = argv + 2;
-        break;
-      } else {
-        argv--;
-      }
-    }
-    
-    if ( pipe( fd_in ) == ERROR || pipe( fd_out ) == ERROR ) {
-      perror( "failed pipe" );
-      _exit( EXIT_FAILURE );
-    }
+  /* Move to last argument */
+  next_cmd( &argv, &args, &argc );
 
-    if ( ( childpid = fork() ) == ERROR ) {
-      perror( "failed fork" );
-      _exit( EXIT_FAILURE );
-    }
-    
-    if ( childpid == 0 ) {
-/*
-      if ( close( fd_in[ 0 ] ) == ERROR || close( fd_out[ 1 ] ) == ERROR ) {
-        close( fd_in [ 1 ] );
-        close( fd_out[ 0 ] );
-        close( fd_out[ 1 ] );
-        perror( "failed close" );
-        _exit( EXIT_FAILURE );
-      }
-
-      if ( dup2( fd_out[ 0 ], fd_out[ 1 ] ) == ERROR ) {
-        close( fd_in [ 1 ] );
-        close( fd_out[ 0 ] );
-        perror( "failed redirect in" );
-        _exit( EXIT_FAILURE );
-      } else if ( close( fd_out[ 0 ] ) == ERROR ) {
-        close( fd_in [ 1 ] );
-        perror( "failed close" );
-        _exit( EXIT_FAILURE );
-      }
-
-      if ( dup2( fd_in[ 1 ], STDOUT_FILENO ) == ERROR ) {
-        close( fd_in[ 1 ] );
-        perror( "failed redirect out" );
-        _exit( EXIT_FAILURE );
-      } else if ( close( fd_in[ 1 ] ) == ERROR ) {
-        perror( "failed close" );
-        _exit( EXIT_FAILURE );
-      }
-*/
-
-      close( fd_in[ 0 ] );
-      //dup2( fd_out[ 1 ], STDOUT_FILENO );
-
-      if ( redirect_in ) {
-        fclose( stdin );
-        redirect_in = false;
-      }
-
-      fprintf(stderr, "command: %s\n",args[0] );
-      if ( execvp( args[ 0 ], args ) != 0 ) {
-        perror( "Error in execvp" );
-        _exit( EXIT_FAILURE );
-      }
-
-    } else {
-/*
-      if ( close( fd_in[ 1 ] ) == ERROR || close( fd_out[ 0 ] ) == ERROR ) {
-        close( fd_out[ 0 ] );
-        perror( "failed close" );
-        exit( EXIT_FAILURE );
-      } else {
-*/
-      close( fd_in[ 1 ] );
-      //dup2( fd_out[ 0 ], STDIN_FILENO );
-      wait( NULL );
-      //}
-    }
-  }
+  /* Start off the recursive forking fun */
+  do_child( argv, args, argc, true );
 
   return ( EXIT_SUCCESS );
+}
+
+void do_child( char** argv, char** args, int argc, bool last_cmd ){
+
+  int status;
+
+  //fprintf( stderr, "argc: %d\n", argc );
+  
+  int fds[2] = { -1, -1 };
+  status = pipe( fds );
+  //fprintf( stderr, "pipe: { %d, %d }\n", fds[0], fds[1] );
+
+  if ( status == -1) {
+    perror( "failed pipe" );
+    fprintf( stderr, "pipe failed: [0] = %d, [1] = %d\n", fds[0], fds[1] );
+  }
+
+  pid_t pid = fork();
+  /* Child  now */
+  if ( pid == 0 ) {
+    char** cmd = args;
+
+    /*
+    if ( argc <= 0 ) {
+      fprintf( stderr, "first command: %s\n", cmd[ 0 ] );
+      dup2( fds[ 0 ], STDIN_FILENO );
+    }
+    */
+    dup2( fds[ 1 ], STDOUT_FILENO );
+    close( fds[ 0 ] );
+
+    if ( next_cmd( &argv, &args, &argc ) ) {
+      do_child( argv, args, argc, false );
+    }
+
+    fprintf( stderr, "command: %s\n", cmd[0] );
+    execvp( cmd[ 0 ], cmd );
+  } else {
+    fprintf( stderr, "waiting parent of %s \n", args[0] );
+
+    dup2( fds[ 0 ], STDIN_FILENO );
+    close( fds[ 1 ] );
+    wait( NULL );
+ 
+    /*
+    if ( last_cmd ) {
+      fprintf( stderr, "last command: %s\n", args[ 0 ] );
+      dup2( fds[ 1 ], STDOUT_FILENO );
+    } 
+    close( fds[ 1 ] );
+    wait( NULL );
+    */
+
+    fprintf( stderr, "end waiting parent %s \n", args[0] );
+  }
+  return;
 }
