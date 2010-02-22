@@ -12,7 +12,6 @@
 #include "pipeline.h"
 
 /* redirect input/output */
-bool redirect_in = false;
 bool redirect_out = false;
 
 /* filename for input/output files */
@@ -51,7 +50,18 @@ bool next_cmd( char*** argv, char*** args, int *argc ) {
     } else {
       (*argv)--;
     }
+
   }
+
+  int i = 0;
+  while ( (*args)[ i ] != NULL ) {
+    if ( (*args)[ i ][ 0 ] == '<' || (*args)[ i ][ 0 ] == '>' ) {
+      (*args)[ i ] = (char*) NULL;
+      break;
+    }
+    i++;
+  }
+
   return true;
 }
 
@@ -82,6 +92,7 @@ int main( int argc, char* argv[] ) {
   ** redirects and illegal output redirects
   */
   bool block_in = false;
+  bool redirect_in = false;
   for ( int i = 2; i < argc - 1; i++ ) {
 
     if ( argv[ i ][ 0 ] == '|' ) {
@@ -169,12 +180,8 @@ int main( int argc, char* argv[] ) {
 void do_child( char** argv, char** args, int argc, bool last_cmd ){
 
   int status;
-
-  //fprintf( stderr, "argc: %d\n", argc );
-  
   int fds[2] = { -1, -1 };
   status = pipe( fds );
-  //fprintf( stderr, "pipe: { %d, %d }\n", fds[0], fds[1] );
 
   if ( status == -1) {
     perror( "failed pipe" );
@@ -182,6 +189,7 @@ void do_child( char** argv, char** args, int argc, bool last_cmd ){
   }
 
   pid_t pid = fork();
+
   /* Child  now */
   if ( pid == 0 ) {
     char** cmd = args;
@@ -196,6 +204,7 @@ void do_child( char** argv, char** args, int argc, bool last_cmd ){
     
     if ( last_cmd ) {
       dup2( 1, STDOUT_FILENO );
+      freopen( ofile, "w", stdout );
     } else {
       dup2( fds[ 1 ], STDOUT_FILENO );
     }
@@ -205,10 +214,10 @@ void do_child( char** argv, char** args, int argc, bool last_cmd ){
       do_child( argv, args, argc, false );
     }
 
-    fprintf( stderr, "command: %s\n", cmd[0] );
+    //fprintf( stderr, "command: %s\n", cmd[0] );
     execvp( cmd[ 0 ], cmd );
   } else {
-    fprintf( stderr, "waiting parent of %s \n", args[0] );
+    //fprintf( stderr, "waiting parent of %s \n", args[0] );
 
     dup2( fds[ 0 ], STDIN_FILENO );
     close( fds[ 1 ] );
@@ -223,7 +232,7 @@ void do_child( char** argv, char** args, int argc, bool last_cmd ){
     wait( NULL );
     */
 
-    fprintf( stderr, "end waiting parent %s \n", args[0] );
+    //fprintf( stderr, "end waiting parent %s \n", args[0] );
   }
   return;
 }
