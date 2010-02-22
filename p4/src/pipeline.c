@@ -192,7 +192,13 @@ void do_child( char** argv, char** args, int argc, bool last_cmd ){
       dup2( fds[ 0 ], STDIN_FILENO );
     }
     */
-    dup2( fds[ 1 ], STDOUT_FILENO );
+    //dup2( fds[ 0 ], STDIN_FILENO );
+    
+    if ( last_cmd ) {
+      dup2( 1, STDOUT_FILENO );
+    } else {
+      dup2( fds[ 1 ], STDOUT_FILENO );
+    }
     close( fds[ 0 ] );
 
     if ( next_cmd( &argv, &args, &argc ) ) {
